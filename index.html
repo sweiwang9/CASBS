@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASBS Image Map</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: block;
+        }
+        .instructions {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .note {
+            font-style: italic;
+            color: #666;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 4px;
+        }
+        .responsive-area {
+            position: absolute;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-radius: 4px;
+        }
+        .responsive-area:hover {
+            background-color: rgba(33, 150, 243, 0.3);
+            border: 2px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CASBS 2024-2025</h1>
+        
+        <div class="image-container" id="imageContainer">
+            <img src="CASBSmap.png" id="responsiveImage" alt="CASBS Map" onload="initializeResponsiveMap()">
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> Make sure the image file "CASBSmap.png" is in the same directory as this HTML file. This responsive image map will automatically adjust all clickable areas when the image is resized on different screen sizes.
+        </div>
+    </div>
+
+    <script>
+        // Original coordinates from the complete image map
+        const originalAreas = [
+            { coords: [78, 62, 150, 135], href: "https://sites.google.com/a/umich.edu/thomaslyon/", title: "Thomas Lyon" },
+            { coords: [155, 62, 227, 134], href: "https://sites.lsa.umich.edu/matthewhull/", title: "Matthew Hull" },
+            { coords: [230, 62, 304, 137], href: "https://www.maureeneger.com/", title: "Maureen Eger" },
+            { coords: [308, 61, 383, 135], href: "https://discover.research.ivey.ca/wren-montgomery", title: "Wren Montgomery" },
+            { coords: [424, 62, 498, 134], href: "https://law.stanford.edu/anne-joseph-oconnell/", title: "Anne Joseph O'Connell" },
+            { coords: [501, 60, 573, 135], href: "https://sites.pitt.edu/~swwang/", title: "SW Wang" },
+            { coords: [577, 58, 652, 135], href: "https://scholar.google.com/citations?user=gQ1osqMAAAAJ", title: "Google Scholar Profile" },
+            { coords: [656, 60, 729, 135], href: "http://markalgeehewitt.org/", title: "Mark Algee-Hewitt" },
+            { coords: [765, 66, 831, 139], href: "https://annewashington.com/", title: "Anne Washington" },
+            { coords: [844, 71, 906, 145], href: "https://www.michellesee.com/", title: "Michelle See" },
+            { coords: [921, 77, 983, 152], href: "https://www.law.berkeley.edu/our-faculty/faculty-profiles/katerina-linos/", title: "Katerina Linos" },
+            { coords: [998, 87, 1062, 160], href: "https://scholar.google.com/citations?user=bXwZ594AAAAJ&hl=en", title: "Google Scholar Profile" },
+            { coords: [1073, 95, 1136, 166], href: "https://www.alanshanedillingham.com/", title: "Alan Shane Dillingham" },
+            { coords: [1188, 103, 1254, 175], href: "https://www.profconnor.com/", title: "Prof Connor" },
+            { coords: [1265, 109, 1331, 182], href: "https://sites.google.com/site/devorahsmanekin/", title: "Devorah Manekin" },
+            { coords: [1341, 114, 1407, 189], href: "https://noamgidron.com/", title: "Noam Gidron" },
+            { coords: [1422, 122, 1482, 198], href: "https://mbl.stanford.edu/", title: "Stanford MBL" },
+            { coords: [355, 604, 430, 679], href: "https://www.researchgate.net/profile/Carrie-Rentschler", title: "Carrie Rentschler" },
+            { coords: [432, 606, 509, 679], href: "https://sociology.berkeley.edu/faculty/armando-lara-millan", title: "Armando Lara-Millan" },
+            { coords: [511, 603, 584, 680], href: "https://homepage.ntu.edu.tw/~pclan/english.html", title: "PC Lan" },
+            { coords: [665, 603, 739, 680], href: "https://www.linkedin.com/in/alice-farmer-8920979/", title: "Alice Farmer" },
+            { coords: [742, 603, 814, 680], href: "https://scholar.google.com/citations?user=T05VsSsAAAAJ&hl=en", title: "Google Scholar Profile" },
+            { coords: [818, 605, 891, 680], href: "https://discover.research.utoronto.ca/14077-katherine-decelles", title: "Katherine DeCelles" },
+            { coords: [464, 776, 539, 851], href: "https://scholar.google.com/citations?user=nlpEibcAAAAJ&hl=en", title: "Google Scholar Profile" },
+            { coords: [464, 855, 539, 927], href: "https://law.stanford.edu/shirin-sinnar/", title: "Shirin Sinnar" },
+            { coords: [464, 931, 539, 1003], href: "https://fass.nus.edu.sg/hist/people/lee-seung-joon/", title: "Lee Seung-joon" },
+            { coords: [464, 1082, 539, 1161], href: "https://scholar.google.co.za/citations?user=oGpTvtYAAAAJ&hl=en", title: "Google Scholar Profile" },
+            { coords: [464, 1161, 537, 1234], href: "https://www.camillahawthorne.com/", title: "Camilla Hawthorne" },
+            { coords: [464, 1236, 539, 1311], href: "https://www.pomona.edu/directory/people/angelina-chin", title: "Angelina Chin" },
+            { coords: [1184, 426, 1256, 501], href: "https://pubmed.ncbi.nlm.nih.gov/?term=%28%28%28Chren+MM%5BAuthor%5D%29+AND+%28Chren%2C+Mm%5BAuthor%5D%29%29+AND+%28Chren%2C+Mary+Margaret%5BAuthor%5D%29%29+AND+%28Chren%2C+Marymargaret%5BAuthor%5D%29&sort=", title: "Mary Margaret Chren" },
+            { coords: [1337, 425, 1412, 500], href: "https://michaelharsch.org/", title: "Michael Harsch" },
+            { coords: [1414, 423, 1491, 499], href: "https://ihlc.nuu.edu.tw/p/406-1064-27485,r1032.php?Lang=en", title: "NUU Profile" },
+            { coords: [1973, 463, 2048, 538], href: "https://scholar.google.fr/citations?user=L0n7I6sAAAAJ&hl=fr", title: "Google Scholar Profile" },
+            { coords: [1973, 542, 2048, 615], href: "https://www.arts.cuhk.edu.hk/~ant/memberprofile/lam-weng-cheong/", title: "Lam Weng Cheong" },
+            { coords: [1973, 618, 2048, 693], href: "http://www.aglantz.com/", title: "AG Lantz" },
+            { coords: [1973, 695, 2050, 770], href: "https://ambbleich.substack.com/", title: "Amb Bleich" },
+            { coords: [1973, 849, 2048, 921], href: "https://pubmed.ncbi.nlm.nih.gov/?term=%28%28%28Landefeld+CS%5BAuthor%5D%29+AND+%28Landefeld%2C+Cs%5BAuthor%5D%29%29+AND+%28Landefeld%2C+Seth%5BAuthor%5D%29%29+AND+%28Landefeld%2C+C+Seth%5BAuthor%5D%29&sort=", title: "C Seth Landefeld" },
+            { coords: [1973, 923, 2050, 998], href: "https://www.iticlab.com/", title: "ITIC Lab" },
+            { coords: [1973, 1003, 2048, 1078], href: "https://sites.google.com/site/hyeonhohahm/", title: "Hyeon Ho Hahm" },
+            { coords: [1973, 1080, 2048, 1153], href: "https://rachelbrule.com/", title: "Rachel Brule" },
+            { coords: [1164, 1442, 1247, 1495], href: "https://www.gsb.stanford.edu/experience/about/leadership/updates", title: "Stanford GSB" },
+            { coords: [1617, 1154, 1689, 1228], href: "https://casbs.stanford.edu/podcast", title: "CASBS Podcast" },
+            { coords: [1429, 645, 1546, 798], href: "https://www.casbs2425.net/forum.html", title: "CASBS Forum" },
+            { coords: [805, 1289, 1007, 1516], href: "https://www.casbs2425.net/map.html", title: "CASBS Map" },
+            { coords: [1100, 743, 1230, 950], href: "https://casbs.stanford.edu", title: "CASBS Stanford" }
+        ];
+
+        let originalImageWidth = 0;
+        let originalImageHeight = 0;
+        let clickableAreas = [];
+
+        function initializeResponsiveMap() {
+            const img = document.getElementById('responsiveImage');
+            const container = document.getElementById('imageContainer');
+            
+            // Get original image dimensions
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                originalImageWidth = this.width;
+                originalImageHeight = this.height;
+                createResponsiveAreas();
+                updateResponsiveAreas();
+            };
+            tempImg.src = img.src;
+
+            // Update areas when window is resized
+            window.addEventListener('resize', updateResponsiveAreas);
+        }
+
+        function createResponsiveAreas() {
+            const container = document.getElementById('imageContainer');
+            
+            originalAreas.forEach((area, index) => {
+                const areaDiv = document.createElement('div');
+                areaDiv.className = 'responsive-area';
+                areaDiv.title = area.title;
+                areaDiv.style.position = 'absolute';
+                areaDiv.addEventListener('click', function() {
+                    window.open(area.href, '_blank');
+                });
+                
+                container.appendChild(areaDiv);
+                clickableAreas.push(areaDiv);
+            });
+        }
+
+        function updateResponsiveAreas() {
+            const img = document.getElementById('responsiveImage');
+            const imgRect = img.getBoundingClientRect();
+            const containerRect = img.parentElement.getBoundingClientRect();
+            
+            const scaleX = img.offsetWidth / originalImageWidth;
+            const scaleY = img.offsetHeight / originalImageHeight;
+            
+            originalAreas.forEach((area, index) => {
+                const areaDiv = clickableAreas[index];
+                if (areaDiv) {
+                    const [x1, y1, x2, y2] = area.coords;
+                    
+                    const scaledX1 = x1 * scaleX;
+                    const scaledY1 = y1 * scaleY;
+                    const scaledX2 = x2 * scaleX;
+                    const scaledY2 = y2 * scaleY;
+                    
+                    areaDiv.style.left = scaledX1 + 'px';
+                    areaDiv.style.top = scaledY1 + 'px';
+                    areaDiv.style.width = (scaledX2 - scaledX1) + 'px';
+                    areaDiv.style.height = (scaledY2 - scaledY1) + 'px';
+                }
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('responsiveImage').complete) {
+                initializeResponsiveMap();
+            }
+        });
+    </script>
+</body>
+</html>
