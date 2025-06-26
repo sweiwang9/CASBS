@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASBS Fellows Directory</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8C1515 0%, #B83A4B 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(140, 21, 21, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #8C1515, #A91B1B);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .table-container {
+            padding: 0;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+        
+        thead th {
+            background: linear-gradient(to bottom, #8C1515, #7A1212);
+            color: white;
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 3px solid #5A0F0F;
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        tbody tr:hover {
+            background: linear-gradient(to right, #fff5f5, #ffeaea);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(140, 21, 21, 0.1);
+        }
+        
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        .name-cell {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .link-cell a {
+            color: #8C1515;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border: 2px solid #8C1515;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            background: white;
+        }
+        
+        .link-cell a:hover {
+            background: #8C1515;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(140, 21, 21, 0.3);
+        }
+        
+        .link-cell a:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            td, th {
+                padding: 12px 15px;
+            }
+            
+            .link-cell a {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CASBS 2024-2025</h1>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Website</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="name-cell">Aldashev</td>
+                        <td class="name-cell">Gani</td>
+                        <td class="link-cell"><a href="https://scholar.google.com/citations?user=bXwZ594AAAAJ&hl=en" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Algee-Hewitt</td>
+                        <td class="name-cell">Mark</td>
+                        <td class="link-cell"><a href="http://markalgeehewitt.org/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Benya</td>
+                        <td class="name-cell">Asanda-Jonas</td>
+                        <td class="link-cell"><a href="https://scholar.google.co.za/citations?user=oGpTvtYAAAAJ&hl=en" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Bleich</td>
+                        <td class="name-cell">Jeffrey</td>
+                        <td class="link-cell"><a href="https://ambbleich.substack.com/" target="_blank">Substack</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Brul&eacute;</td>
+                        <td class="name-cell">Rachel</td>
+                        <td class="link-cell"><a href="https://rachelbrule.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Chin</td>
+                        <td class="name-cell">Angelina</td>
+                        <td class="link-cell"><a href="https://www.pomona.edu/directory/people/angelina-chin" target="_blank">Pomona College</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Chren</td>
+                        <td class="name-cell">Mary-Margaret</td>
+                        <td class="link-cell"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=%28%28%28Chren+MM%5BAuthor%5D%29+AND+%28Chren%2C+Mm%5BAuthor%5D%29%29+AND+%28Chren%2C+Mary+Margaret%5BAuthor%5D%29%29+AND+%28Chren%2C+Marymargaret%5BAuthor%5D%29&sort=" target="_blank">PubMed</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Connor</td>
+                        <td class="name-cell">Dylan</td>
+                        <td class="link-cell"><a href="https://www.profconnor.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Croidieu</td>
+                        <td class="name-cell">Gregoire</td>
+                        <td class="link-cell"><a href="https://scholar.google.fr/citations?user=L0n7I6sAAAAJ&hl=fr" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Crum</td>
+                        <td class="name-cell">Alia</td>
+                        <td class="link-cell"><a href="https://mbl.stanford.edu/" target="_blank">Stanford</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">DeCelles</td>
+                        <td class="name-cell">Katherine A.</td>
+                        <td class="link-cell"><a href="https://discover.research.utoronto.ca/14077-katherine-decelles" target="_blank">University of Toronto</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Dillingham</td>
+                        <td class="name-cell">Alan Shane</td>
+                        <td class="link-cell"><a href="https://www.alanshanedillingham.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Eger</td>
+                        <td class="name-cell">Maureen A.</td>
+                        <td class="link-cell"><a href="https://www.maureeneger.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Farmer</td>
+                        <td class="name-cell">Alice</td>
+                        <td class="link-cell"><a href="https://www.linkedin.com/in/alice-farmer-8920979/" target="_blank">LinkedIn</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Gendler</td>
+                        <td class="name-cell">Tamar</td>
+                        <td class="link-cell"><a href="https://scholar.google.com/citations?user=gQ1osqMAAAAJ" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Gidron</td>
+                        <td class="name-cell">Noam</td>
+                        <td class="link-cell"><a href="https://noamgidron.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Glantz</td>
+                        <td class="name-cell">Aaron</td>
+                        <td class="link-cell"><a href="http://www.aglantz.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Hahm</td>
+                        <td class="name-cell">Hyeonho</td>
+                        <td class="link-cell"><a href="https://sites.google.com/site/hyeonhohahm/" target="_blank">Google Sites</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Hansen</td>
+                        <td class="name-cell">Thomas Blom</td>
+                        <td class="link-cell"><a href="https://scholar.google.com/citations?user=nlpEibcAAAAJ&hl=en" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Harsch</td>
+                        <td class="name-cell">Michael</td>
+                        <td class="link-cell"><a href="https://michaelharsch.org/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Hawthorne</td>
+                        <td class="name-cell">Camilla</td>
+                        <td class="link-cell"><a href="https://www.camillahawthorne.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Hull</td>
+                        <td class="name-cell">Matthew</td>
+                        <td class="link-cell"><a href="https://sites.lsa.umich.edu/matthewhull/" target="_blank">University of Michigan</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Lam</td>
+                        <td class="name-cell">Weng Cheong</td>
+                        <td class="link-cell"><a href="https://www.arts.cuhk.edu.hk/~ant/memberprofile/lam-weng-cheong/" target="_blank">Chinese University of Hong Kong</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Lan</td>
+                        <td class="name-cell">Pei-Chia</td>
+                        <td class="link-cell"><a href="https://homepage.ntu.edu.tw/~pclan/english.html" target="_blank">National Taiwan University</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Landefeld</td>
+                        <td class="name-cell">Seth</td>
+                        <td class="link-cell"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=%28%28%28Landefeld+CS%5BAuthor%5D%29+AND+%28Landefeld%2C+Cs%5BAuthor%5D%29%29+AND+%28Landefeld%2C+Seth%5BAuthor%5D%29%29+AND+%28Landefeld%2C+C+Seth%5BAuthor%5D%29&sort=" target="_blank">PubMed</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Lara-Millan</td>
+                        <td class="name-cell">Armando</td>
+                        <td class="link-cell"><a href="https://sociology.berkeley.edu/faculty/armando-lara-millan" target="_blank">UC Berkeley</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Lee</td>
+                        <td class="name-cell">Seung-Joon</td>
+                        <td class="link-cell"><a href="https://fass.nus.edu.sg/hist/people/lee-seung-joon/" target="_blank">National University of Singapore</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Linos</td>
+                        <td class="name-cell">Katerina</td>
+                        <td class="link-cell"><a href="https://www.law.berkeley.edu/our-faculty/faculty-profiles/katerina-linos/" target="_blank">UC Berkeley</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Lyon</td>
+                        <td class="name-cell">Thomas</td>
+                        <td class="link-cell"><a href="https://sites.google.com/a/umich.edu/thomaslyon/" target="_blank">University of Michigan</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Manekin</td>
+                        <td class="name-cell">Devorah</td>
+                        <td class="link-cell"><a href="https://sites.google.com/site/devorahsmanekin/" target="_blank">Google Sites</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Montgomery</td>
+                        <td class="name-cell">A. Wren</td>
+                        <td class="link-cell"><a href="https://discover.research.ivey.ca/wren-montgomery" target="_blank">Ivey Business School</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">O'Connell</td>
+                        <td class="name-cell">Anne Joseph</td>
+                        <td class="link-cell"><a href="https://law.stanford.edu/anne-joseph-oconnell/" target="_blank">Stanford Law</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Owens</td>
+                        <td class="name-cell">Ann</td>
+                        <td class="link-cell"><a href="https://scholar.google.com/citations?user=T05VsSsAAAAJ&hl=en" target="_blank">Google Scholar</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Rentschler</td>
+                        <td class="name-cell">Carrie A.</td>
+                        <td class="link-cell"><a href="https://www.researchgate.net/profile/Carrie-Rentschler" target="_blank">ResearchGate</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">See</td>
+                        <td class="name-cell">Ya Hui Michelle</td>
+                        <td class="link-cell"><a href="https://www.michellesee.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Sinnar</td>
+                        <td class="name-cell">Shirin</td>
+                        <td class="link-cell"><a href="https://law.stanford.edu/shirin-sinnar/" target="_blank">Stanford Law</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Sullivan</td>
+                        <td class="name-cell">Jas</td>
+                        <td class="link-cell"><a href="https://www.iticlab.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Wang</td>
+                        <td class="name-cell">Stephanie W.</td>
+                        <td class="link-cell"><a href="https://sites.pitt.edu/~swwang/" target="_blank">University of Pittsburgh</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Washington</td>
+                        <td class="name-cell">Anne L.</td>
+                        <td class="link-cell"><a href="https://annewashington.com/" target="_blank">Personal Website</a></td>
+                    </tr>
+                    <tr>
+                        <td class="name-cell">Wu</td>
+                        <td class="name-cell">Tsui-Sung</td>
+                        <td class="link-cell"><a href="https://ihlc.nuu.edu.tw/p/406-1064-27485,r1032.php?Lang=en" target="_blank">National United University</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
