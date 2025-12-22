@@ -101,6 +101,29 @@
             } catch (e) { alert("Invalid Password"); }
         });
 
+        document.getElementById('search-city-btn').onclick = async () => {
+        const query = document.getElementById('loc').value;
+        if (!query) return;
+        
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.length > 0) {
+            const { lat, lon, display_name } = data[0];
+            const newPos = [parseFloat(lat), parseFloat(lon)];
+            
+            // Update hidden inputs and map
+            document.getElementById('lat').value = lat;
+            document.getElementById('lng').value = lon;
+            document.getElementById('loc').value = display_name;
+            
+            if (tempMarker) map.removeLayer(tempMarker);
+            tempMarker = L.marker(newPos).addTo(map);
+            map.setView(newPos, 10);
+        } else {
+            alert("Location not found. Try adding a country name.");
+        }
+        };
         const panel = document.getElementById('upload-panel');
         document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
         document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
