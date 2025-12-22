@@ -11,7 +11,7 @@
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans">
+<body class="bg-slate-100 font-sans overflow-hidden">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <div id="map"></div>
+    <div id="map" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh;"></div>
 
     <button id="add-btn" class="fixed bottom-8 right-8 z-[1000] bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
         + Add Meetup
@@ -37,16 +37,16 @@
         <form id="meetup-form" class="space-y-5">
             <p class="text-xs text-indigo-600 font-medium">Step 1: Click the map to set location, or type city.</p>
             <div>
-            <label class="block text-sm font-semibold text-slate-700">Location *</label>
-            <div class="flex gap-2 mt-1">
-            <input type="text" id="loc" required placeholder="Type city or click map..." class="w-full border p-2 rounded bg-slate-50">
-            <button type="button" id="search-city-btn" class="bg-indigo-100 text-indigo-700 px-3 rounded text-sm font-bold hover:bg-indigo-200">Find</button>
-            </div>
-            <input type="hidden" id="lat"> <input type="hidden" id="lng">
+                <label class="block text-sm font-semibold text-slate-700">Location *</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="loc" required placeholder="Type city..." class="w-full border p-2 rounded bg-slate-50 text-sm">
+                    <button type="button" id="search-city-btn" class="bg-indigo-100 text-indigo-700 px-3 rounded text-sm font-bold">Find</button>
+                </div>
+                <input type="hidden" id="lat"> <input type="hidden" id="lng">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700">Photo (Optional)</label>
-                <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                <label class="block text-sm font-semibold text-slate-700">Photo</label>
+                <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Classmates</label>
@@ -62,7 +62,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
-        // Fixed Imports: Removed duplicates and fixed the URL paths
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -74,8 +73,7 @@
             projectId: "casbs-d6beb",
             storageBucket: "casbs-d6beb.firebasestorage.app",
             messagingSenderId: "1041142814490",
-            appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3",
-            measurementId: "G-5F2GV23PEE"
+            appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -83,47 +81,49 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
+        // Map Init
         const map = L.map('map').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
         let tempMarker = null;
 
+        // Login
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('common-pass').value;
             try {
                 await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
-                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('add-btn').classList.remove('hidden');
-                setTimeout(() => {
-                map.invalidateSize();
-                }, 300);
-                loadMarkers();
+                
+                // Force map to recalculate size after login screen is gone
+                setTimeout(() => { 
+                    map.invalidateSize();
+                    loadMarkers();
+                }, 400);
+
             } catch (e) { alert("Invalid Password"); }
         });
 
+        // Search City
         document.getElementById('search-city-btn').onclick = async () => {
-        const query = document.getElementById('loc').value;
-        if (!query) return;
-        
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-        const data = await response.json();
-        
-        if (data.length > 0) {
-            const { lat, lon, display_name } = data[0];
-            const newPos = [parseFloat(lat), parseFloat(lon)];
-            
-            // Update hidden inputs and map
-            document.getElementById('lat').value = lat;
-            document.getElementById('lng').value = lon;
-            document.getElementById('loc').value = display_name;
-            
-            if (tempMarker) map.removeLayer(tempMarker);
-            tempMarker = L.marker(newPos).addTo(map);
-            map.setView(newPos, 10);
-        } else {
-            alert("Location not found. Try adding a country name.");
-        }
+            const query = document.getElementById('loc').value;
+            if (!query) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if (data.length > 0) {
+                const { lat, lon, display_name } = data[0];
+                const newPos = [parseFloat(lat), parseFloat(lon)];
+                document.getElementById('lat').value = lat;
+                document.getElementById('lng').value = lon;
+                document.getElementById('loc').value = display_name;
+                if (tempMarker) map.removeLayer(tempMarker);
+                tempMarker = L.marker(newPos).addTo(map);
+                map.setView(newPos, 10);
+            }
         };
+
         const panel = document.getElementById('upload-panel');
         document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
         document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
@@ -142,66 +142,50 @@
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
             btn.disabled = true; btn.innerText = "Saving...";
-
             const file = document.getElementById('photo').files[0];
             let url = null;
-
             try {
                 if(file) {
                     const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
                     await uploadBytes(sRef, file);
                     url = await getDownloadURL(sRef);
                 }
-
                 await addDoc(collection(db, "meetups"), {
                     lat: parseFloat(document.getElementById('lat').value) || 0,
                     lng: parseFloat(document.getElementById('lng').value) || 0,
                     locationName: document.getElementById('loc').value,
-                    attendees: document.getElementById('attendees').value, // Fixed variable name
+                    attendees: document.getElementById('attendees').value,
                     date: document.getElementById('date').value,
                     imageUrl: url,
                     createdAt: new Date()
                 });
-
                 location.reload();
-            } catch (err) {
-                console.error(err);
-                alert("Error saving: " + err.message);
-                btn.disabled = false; btn.innerText = "Save Meetup";
-            }
+            } catch (err) { alert(err.message); btn.disabled = false; }
         };
 
         async function loadMarkers() {
-            try {
-                const snap = await getDocs(collection(db, "meetups"));
-                snap.forEach((d) => {
-                    const data = d.data();
-                    const marker = L.marker([data.lat, data.lng]).addTo(map);
-                    const content = `
-                        <div class="w-48">
-                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
-                            <h3 class="font-bold">${data.locationName}</h3>
-                            <p class="text-sm">${data.attendees || 'Classmate'}</p>
-                            <p class="text-xs text-slate-400">${data.date || ''}</p>
-                            <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="mt-2 text-red-500 text-xs font-bold uppercase tracking-wider">Delete</button>
-                        </div>
-                    `;
-                    marker.bindPopup(content);
-                });
-            } catch (err) { console.error("Error loading markers:", err); }
+            const snap = await getDocs(collection(db, "meetups"));
+            snap.forEach((d) => {
+                const data = d.data();
+                const marker = L.marker([data.lat, data.lng]).addTo(map);
+                marker.bindPopup(`
+                    <div class="w-48">
+                        ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
+                        <h3 class="font-bold">${data.locationName}</h3>
+                        <p class="text-sm">${data.attendees || ''}</p>
+                        <p class="text-xs text-slate-400">${data.date || ''}</p>
+                        <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="text-red-500 text-xs font-bold mt-2">Delete</button>
+                    </div>
+                `);
+            });
         }
 
         window.deleteEntry = async (id, url) => {
-            if(!confirm("Delete this meetup permanently?")) return;
-            try {
-                if(url && url !== "null" && url !== "undefined") {
-                    await deleteObject(ref(storage, url));
-                }
-                await deleteDoc(doc(db, "meetups", id));
-                location.reload();
-            } catch (err) { alert("Delete failed: " + err.message); }
+            if(!confirm("Delete permanently?")) return;
+            if(url && url !== "null") await deleteObject(ref(storage, url)).catch(e => console.log(e));
+            await deleteDoc(doc(db, "meetups", id));
+            location.reload();
         };
-
     </script>
 </body>
 </html>
