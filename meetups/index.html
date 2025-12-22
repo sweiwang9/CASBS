@@ -61,157 +61,159 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserSessionPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
-            authDomain: "casbs-d6beb.firebaseapp.com",
-            projectId: "casbs-d6beb",
-            storageBucket: "casbs-d6beb.firebasestorage.app",
-            messagingSenderId: "1041142814490",
-            appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
+        authDomain: "casbs-d6beb.firebaseapp.com",
+        projectId: "casbs-d6beb",
+        storageBucket: "casbs-d6beb.firebasestorage.app",
+        messagingSenderId: "1041142814490",
+        appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-        // MAP SETUP
-        const map = L.map('map').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+    // PERSISTENCE: This keeps you logged in even if you refresh
+    setPersistence(auth, browserSessionPersistence);
 
-        let tempMarker = null;
+    // MAP INITIALIZATION
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
 
-        // LOGIN
-        document.getElementById('login-btn').onclick = async () => {
-            const pass = document.getElementById('common-pass').value;
-            try {
-                await setPersistence(auth, browserSessionPersistence);
-                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('add-btn').classList.remove('hidden');
-                setTimeout(() => { map.invalidateSize(); loadMarkers(); }, 400);
-            } catch (e) { alert("Access Denied"); }
-        };
+    let tempMarker = null;
 
-        // SEARCH
-        document.getElementById('search-city-btn').onclick = async () => {
-            const q = document.getElementById('loc').value;
-            if (!q) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            if (data[0]) {
-                const pos = [data[0].lat, data[0].lon];
-                document.getElementById('lat').value = data[0].lat;
-                document.getElementById('lng').value = data[0].lon;
-                document.getElementById('loc').value = data[0].display_name;
-                if(tempMarker) map.removeLayer(tempMarker);
-                tempMarker = L.marker(pos).addTo(map);
-                map.setView(pos, 8);
-            }
-        };
-
-        // FORM ACTIONS
-        const panel = document.getElementById('upload-panel');
-        document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
-        document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
-
-        map.on('click', (e) => {
-            if(!panel.classList.contains('hidden')) {
-                if(tempMarker) map.removeLayer(tempMarker);
-                tempMarker = L.marker(e.latlng).addTo(map);
-                document.getElementById('lat').value = e.latlng.lat;
-                document.getElementById('lng').value = e.latlng.lng;
-                document.getElementById('loc').value = "Selected on map";
-            }
-        });
-
-        document.getElementById('meetup-form').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    // Safety Check: Ensure Lat/Lng are actually numbers
-    const rawLat = document.getElementById('lat').value;
-    const rawLng = document.getElementById('lng').value;
-    
-    if (!rawLat || !rawLng || isNaN(rawLat) || isNaN(rawLng)) {
-        alert("Please click the map or use 'Find' to set a specific location first!");
-        return;
-    }
-
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true; 
-    btn.innerText = "Saving...";
-
-    const file = document.getElementById('photo').files[0];
-    try {
-        let url = null;
-        if(file) {
-            const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-            await uploadBytes(sRef, file);
-            url = await getDownloadURL(sRef);
+    // AUTO-LOGIN CHECK: If already logged in, skip the password screen
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('add-btn').classList.remove('hidden');
+            setTimeout(() => { map.invalidateSize(); loadMarkers(); }, 400);
         }
+    });
 
-        await addDoc(collection(db, "meetups"), {
-            lat: parseFloat(rawLat),
-            lng: parseFloat(rawLng),
-            locationName: document.getElementById('loc').value,
-            attendees: document.getElementById('attendees').value,
-            date: document.getElementById('date').value,
-            imageUrl: url
-        });
-
-        alert("Saved!");
-        location.reload(); 
-    } catch (err) { 
-        console.error(err);
-        alert("Error: " + err.message); 
-        btn.disabled = false; 
-        btn.innerText = "Save Meetup";
-    }
-};
-
-        async function loadMarkers() {
-            const snap = await getDocs(collection(db, "meetups"));
-            snap.forEach(d => {
-                const data = d.data();
-                const marker = L.marker([data.lat, data.lng]).addTo(map);
-                marker.bindPopup(`
-                    <div class="w-48 text-sm">
-                        ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover mb-2">` : ''}
-                        <b>${data.locationName}</b><br>${data.attendees || ''}<br>${data.date || ''}<br>
-                        <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="text-red-500 font-bold mt-2">DELETE</button>
-                    </div>
-                `);
-            });
-        }
-
-        window.deleteEntry = async (id, url) => {
-        if(!confirm("Delete this meetup permanently?")) return;
-    
+    // LOGIN ACTION
+    document.getElementById('login-btn').onclick = async () => {
+        const pass = document.getElementById('common-pass').value;
         try {
-        // Only try to delete the image if a valid URL exists
-        if(url && url !== "null" && url !== "" && url.includes("firebasestorage")) {
-            const imageRef = ref(storage, url);
-            await deleteObject(imageRef).catch(e => console.log("Image not found in storage, skipping..."));
+            await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
+            // onAuthStateChanged above will handle the UI transition
+        } catch (e) { alert("Invalid Password"); }
+    };
+
+    // SEARCH CITY
+    document.getElementById('search-city-btn').onclick = async () => {
+        const q = document.getElementById('loc').value;
+        if (!q) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data[0]) {
+            const pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            document.getElementById('lat').value = data[0].lat;
+            document.getElementById('lng').value = data[0].lon;
+            if(tempMarker) map.removeLayer(tempMarker);
+            tempMarker = L.marker(pos).addTo(map);
+            map.setView(pos, 8);
         }
+    };
+
+    // PANEL TOGGLES
+    const panel = document.getElementById('upload-panel');
+    document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
+    document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
+
+    map.on('click', (e) => {
+        if(!panel.classList.contains('hidden')) {
+            if(tempMarker) map.removeLayer(tempMarker);
+            tempMarker = L.marker(e.latlng).addTo(map);
+            document.getElementById('lat').value = e.latlng.lat;
+            document.getElementById('lng').value = e.latlng.lng;
+        }
+    });
+
+    // SAVE FUNCTION (No Reload)
+    document.getElementById('meetup-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const lat = document.getElementById('lat').value;
+        const lng = document.getElementById('lng').value;
         
-        // Delete the document from Firestore
-        await deleteDoc(doc(db, "meetups", id));
+        if(!lat || !lng) return alert("Please select a location on the map.");
+
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true; btn.innerText = "Saving...";
         
-        alert("Deleted!");
-        location.reload();
-        } catch (err) { 
-        console.error(err);
-        alert("Delete failed: " + err.message); 
+        try {
+            const file = document.getElementById('photo').files[0];
+            let url = null;
+            if(file) {
+                const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+                await uploadBytes(sRef, file);
+                url = await getDownloadURL(sRef);
+            }
+
+            await addDoc(collection(db, "meetups"), {
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+                locationName: document.getElementById('loc').value,
+                attendees: document.getElementById('attendees').value,
+                date: document.getElementById('date').value,
+                imageUrl: url,
+                timestamp: new Date()
+            });
+
+            // RESET UI WITHOUT RELOAD
+            document.getElementById('meetup-form').reset();
+            if(tempMarker) map.removeLayer(tempMarker);
+            panel.classList.add('hidden');
+            btn.disabled = false; btn.innerText = "Save Meetup";
+            
+            // Re-load the markers to show the new one
+            loadMarkers();
+            alert("Meetup Saved!");
+
+        } catch (err) { alert(err.message); btn.disabled = false; }
+    };
+
+    async function loadMarkers() {
+        // Clear existing markers to prevent duplicates
+        map.eachLayer((layer) => {
+            if (layer instanceof L.Marker && layer !== tempMarker) map.removeLayer(layer);
+        });
+
+        const q = query(collection(db, "meetups"), orderBy("timestamp", "desc"));
+        const snap = await getDocs(q);
+        snap.forEach(d => {
+            const data = d.data();
+            const marker = L.marker([data.lat, data.lng]).addTo(map);
+            marker.bindPopup(`
+                <div class="w-48">
+                    ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
+                    <h3 class="font-bold">${data.locationName}</h3>
+                    <p class="text-sm">${data.attendees || ''}</p>
+                    <p class="text-xs text-slate-400">${data.date || ''}</p>
+                    <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="text-red-500 text-xs font-bold mt-2">Delete</button>
+                </div>
+            `);
+        });
     }
-};
-    </script>
+
+    window.deleteEntry = async (id, url) => {
+        if(!confirm("Delete?")) return;
+        try {
+            if(url && url.includes("firebasestorage")) await deleteObject(ref(storage, url));
+            await deleteDoc(doc(db, "meetups", id));
+            loadMarkers(); // Refresh markers live
+        } catch (e) { alert("Delete failed"); }
+    };
+</script>
 </body>
 </html>
