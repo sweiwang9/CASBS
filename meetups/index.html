@@ -141,29 +141,53 @@
         });
 
         document.getElementById('meetup-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = "Saving...";
-            const file = document.getElementById('photo').files[0];
-            let url = null;
-            try {
-                if(file) {
-                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-                    await uploadBytes(sRef, file);
-                    url = await getDownloadURL(sRef);
-                }
-                await addDoc(collection(db, "meetups"), {
-                    lat: parseFloat(document.getElementById('lat').value) || 0,
-                    lng: parseFloat(document.getElementById('lng').value) || 0,
-                    locationName: document.getElementById('loc').value,
-                    attendees: document.getElementById('attendees').value,
-                    date: document.getElementById('date').value,
-                    imageUrl: url,
-                    createdAt: new Date()
-                });
-                location.reload();
-            } catch (err) { alert(err.message); btn.disabled = false; }
-        };
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; 
+    btn.innerText = "Saving...";
+
+    const file = document.getElementById('photo').files[0];
+    let url = null;
+
+    try {
+        if(file) {
+            const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+            await uploadBytes(sRef, file);
+            url = await getDownloadURL(sRef);
+        }
+
+        // 1. Save to Firebase
+        await addDoc(collection(db, "meetups"), {
+            lat: parseFloat(document.getElementById('lat').value) || 0,
+            lng: parseFloat(document.getElementById('lng').value) || 0,
+            locationName: document.getElementById('loc').value,
+            attendees: document.getElementById('attendees').value,
+            date: document.getElementById('date').value,
+            imageUrl: url,
+            createdAt: new Date()
+        });
+
+        // 2. INSTEAD OF RELOAD: Update the UI live
+        alert("Meetup saved successfully!");
+        
+        // Clear the form and hide the panel
+        document.getElementById('meetup-form').reset();
+        if (tempMarker) map.removeLayer(tempMarker);
+        panel.classList.add('hidden');
+        
+        // Refresh markers on the map without reloading the page
+        loadMarkers(); 
+
+        // Re-enable button
+        btn.disabled = false;
+        btn.innerText = "Save Meetup";
+
+    } catch (err) { 
+        alert("Error saving: " + err.message); 
+        btn.disabled = false; 
+        btn.innerText = "Save Meetup";
+    }
+};
 
         async function loadMarkers() {
             const snap = await getDocs(collection(db, "meetups"));
