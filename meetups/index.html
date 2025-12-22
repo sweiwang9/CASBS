@@ -63,7 +63,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, setPersistence, browserSessionPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -81,7 +81,8 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    setPersistence(auth, browserSessionPersistence);
+    // FORCE LOGOUT ON LOAD: This stops the automatic skip of the login screen
+    signOut(auth);
 
     const map = L.map('map').setView([20, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -90,23 +91,26 @@
 
     let tempMarker = null;
 
-    // Listen for Auth State
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
+    // UPDATED LOGIN ACTION: Only shows map after clicking button
+    document.getElementById('login-btn').onclick = async () => {
+        const pass = document.getElementById('common-pass').value;
+        const btn = document.getElementById('login-btn');
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
+
+        try {
+            await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('add-btn').classList.remove('hidden');
             setTimeout(() => { 
                 map.invalidateSize(); 
                 loadMarkers(); 
             }, 500);
+        } catch (e) { 
+            alert("Invalid Password"); 
+            btn.innerText = "Unlock Map";
+            btn.disabled = false;
         }
-    });
-
-    document.getElementById('login-btn').onclick = async () => {
-        const pass = document.getElementById('common-pass').value;
-        try {
-            await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
-        } catch (e) { alert("Invalid Password"); }
     };
 
     // SEARCH
@@ -140,8 +144,6 @@
 
     // LOAD MARKERS FUNCTION
     async function loadMarkers() {
-        console.log("Fetching pins...");
-        // Clear all markers currently on the map
         map.eachLayer((layer) => {
             if (layer instanceof L.Marker && layer !== tempMarker) {
                 map.removeLayer(layer);
@@ -152,7 +154,6 @@
             const snap = await getDocs(collection(db, "meetups"));
             snap.forEach(d => {
                 const data = d.data();
-                // Check if lat/lng actually exist to prevent errors
                 if (data.lat && data.lng) {
                     const marker = L.marker([data.lat, data.lng]).addTo(map);
                     marker.bindPopup(`
@@ -166,7 +167,7 @@
                     `);
                 }
             });
-        } catch (e) { console.error("Error loading pins:", e); }
+        } catch (e) { console.error(e); }
     }
 
     // SAVE FUNCTION
@@ -188,42 +189,4 @@
                 url = await getDownloadURL(sRef);
             }
 
-            await addDoc(collection(db, "meetups"), {
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                locationName: document.getElementById('loc').value,
-                attendees: document.getElementById('attendees').value,
-                date: document.getElementById('date').value,
-                imageUrl: url,
-                timestamp: serverTimestamp() // Use Firebase server time
-            });
-
-            alert("Meetup Saved!");
-            
-            // UI Cleanup
-            document.getElementById('meetup-form').reset();
-            if(tempMarker) map.removeLayer(tempMarker);
-            tempMarker = null;
-            panel.classList.add('hidden');
-            btn.disabled = false; btn.innerText = "Save Meetup";
-            
-            // Re-draw everything
-            loadMarkers();
-
-        } catch (err) { alert("Save failed: " + err.message); btn.disabled = false; }
-    };
-
-    // DELETE FUNCTION (Global)
-    window.deleteEntryGlobal = async (id, url) => {
-        if(!confirm("Delete this meetup?")) return;
-        try {
-            if(url && url.includes("firebasestorage")) {
-                await deleteObject(ref(storage, url)).catch(e => console.log("Image delete skip"));
-            }
-            await deleteDoc(doc(db, "meetups", id));
-            loadMarkers();
-        } catch (e) { alert("Delete failed"); }
-    };
-</script>
-</body>
-</html>
+            await addDoc(collection(db, "meet
