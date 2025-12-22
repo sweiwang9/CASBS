@@ -59,40 +59,35 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
+        // Fixed Imports: Removed duplicates and fixed the URL paths
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { initializeApp } from "firebase/app";
-        import { getAnalytics } from "firebase/analytics";
-        // --- CONFIGURATION ---
+
         const firebaseConfig = {
-  apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
-  authDomain: "casbs-d6beb.firebaseapp.com",
-  projectId: "casbs-d6beb",
-  storageBucket: "casbs-d6beb.firebasestorage.app",
-  messagingSenderId: "1041142814490",
-  appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3",
-  measurementId: "G-5F2GV23PEE"
-};
+            apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
+            authDomain: "casbs-d6beb.firebaseapp.com",
+            projectId: "casbs-d6beb",
+            storageBucket: "casbs-d6beb.firebasestorage.app",
+            messagingSenderId: "1041142814490",
+            appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3",
+            measurementId: "G-5F2GV23PEE"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
-        const analytics = getAnalytics(app);
 
-        // --- MAP INITIALIZATION ---
         const map = L.map('map').setView([20, 0], 2);
         L.tileLayer('https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         let tempMarker = null;
 
-        // --- LOGIN LOGIC ---
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('common-pass').value;
             try {
-                // Using the shared group email you created in Firebase Console
                 await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('add-btn').classList.remove('hidden');
@@ -100,7 +95,6 @@
             } catch (e) { alert("Invalid Password"); }
         });
 
-        // --- UI LOGIC ---
         const panel = document.getElementById('upload-panel');
         document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
         document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
@@ -115,7 +109,6 @@
             }
         });
 
-        // --- SAVE DATA ---
         document.getElementById('meetup-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
@@ -124,50 +117,60 @@
             const file = document.getElementById('photo').files[0];
             let url = null;
 
-            if(file) {
-                const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-                await uploadBytes(sRef, file);
-                url = await getDownloadURL(sRef);
+            try {
+                if(file) {
+                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+                    await uploadBytes(sRef, file);
+                    url = await getDownloadURL(sRef);
+                }
+
+                await addDoc(collection(db, "meetups"), {
+                    lat: parseFloat(document.getElementById('lat').value) || 0,
+                    lng: parseFloat(document.getElementById('lng').value) || 0,
+                    locationName: document.getElementById('loc').value,
+                    attendees: document.getElementById('attendees').value, // Fixed variable name
+                    date: document.getElementById('date').value,
+                    imageUrl: url,
+                    createdAt: new Date()
+                });
+
+                location.reload();
+            } catch (err) {
+                console.error(err);
+                alert("Error saving: " + err.message);
+                btn.disabled = false; btn.innerText = "Save Meetup";
             }
-
-            await addDoc(collection(db, "meetups"), {
-                lat: parseFloat(document.getElementById('lat').value) || 0,
-                lng: parseFloat(document.getElementById('lng').value) || 0,
-                locationName: document.getElementById('loc').value,
-                classmatess: document.getElementById('classmates').value,
-                date: document.getElementById('date').value,
-                imageUrl: url,
-                createdAt: new Date()
-            });
-
-            location.reload();
         };
 
-        // --- LOAD DATA ---
         async function loadMarkers() {
-            const snap = await getDocs(collection(db, "meetups"));
-            snap.forEach((d) => {
-                const data = d.data();
-                const marker = L.marker([data.lat, data.lng]).addTo(map);
-                const content = `
-                    <div class="w-48">
-                        ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
-                        <h3 class="font-bold">${data.locationName}</h3>
-                        <p class="text-sm">${data.classmates || 'Classmate'}</p>
-                        <p class="text-xs text-slate-400">${data.date || ''}</p>
-                        <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="mt-2 text-red-500 text-xs font-bold uppercase tracking-wider">Delete</button>
-                    </div>
-                `;
-                marker.bindPopup(content);
-            });
+            try {
+                const snap = await getDocs(collection(db, "meetups"));
+                snap.forEach((d) => {
+                    const data = d.data();
+                    const marker = L.marker([data.lat, data.lng]).addTo(map);
+                    const content = `
+                        <div class="w-48">
+                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
+                            <h3 class="font-bold">${data.locationName}</h3>
+                            <p class="text-sm">${data.attendees || 'Classmate'}</p>
+                            <p class="text-xs text-slate-400">${data.date || ''}</p>
+                            <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="mt-2 text-red-500 text-xs font-bold uppercase tracking-wider">Delete</button>
+                        </div>
+                    `;
+                    marker.bindPopup(content);
+                });
+            } catch (err) { console.error("Error loading markers:", err); }
         }
 
-        // --- DELETE LOGIC ---
         window.deleteEntry = async (id, url) => {
             if(!confirm("Delete this meetup permanently?")) return;
-            if(url !== "null" && url) await deleteObject(ref(storage, url));
-            await deleteDoc(doc(db, "meetups", id));
-            location.reload();
+            try {
+                if(url && url !== "null" && url !== "undefined") {
+                    await deleteObject(ref(storage, url));
+                }
+                await deleteDoc(doc(db, "meetups", id));
+                location.reload();
+            } catch (err) { alert("Delete failed: " + err.message); }
         };
 
     </script>
