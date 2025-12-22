@@ -134,29 +134,48 @@
         });
 
         document.getElementById('meetup-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = "Saving...";
-            const file = document.getElementById('photo').files[0];
-            try {
-                let url = null;
-                if(file) {
-                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-                    await uploadBytes(sRef, file);
-                    url = await getDownloadURL(sRef);
-                }
-                await addDoc(collection(db, "meetups"), {
-                    lat: parseFloat(document.getElementById('lat').value),
-                    lng: parseFloat(document.getElementById('lng').value),
-                    locationName: document.getElementById('loc').value,
-                    attendees: document.getElementById('attendees').value,
-                    date: document.getElementById('date').value,
-                    imageUrl: url
-                });
-                alert("Saved!");
-                location.reload(); // Using reload again for total safety/auth persistence
-            } catch (err) { alert(err.message); btn.disabled = false; }
-        };
+    e.preventDefault();
+    
+    // Safety Check: Ensure Lat/Lng are actually numbers
+    const rawLat = document.getElementById('lat').value;
+    const rawLng = document.getElementById('lng').value;
+    
+    if (!rawLat || !rawLng || isNaN(rawLat) || isNaN(rawLng)) {
+        alert("Please click the map or use 'Find' to set a specific location first!");
+        return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; 
+    btn.innerText = "Saving...";
+
+    const file = document.getElementById('photo').files[0];
+    try {
+        let url = null;
+        if(file) {
+            const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+            await uploadBytes(sRef, file);
+            url = await getDownloadURL(sRef);
+        }
+
+        await addDoc(collection(db, "meetups"), {
+            lat: parseFloat(rawLat),
+            lng: parseFloat(rawLng),
+            locationName: document.getElementById('loc').value,
+            attendees: document.getElementById('attendees').value,
+            date: document.getElementById('date').value,
+            imageUrl: url
+        });
+
+        alert("Saved!");
+        location.reload(); 
+    } catch (err) { 
+        console.error(err);
+        alert("Error: " + err.message); 
+        btn.disabled = false; 
+        btn.innerText = "Save Meetup";
+    }
+};
 
         async function loadMarkers() {
             const snap = await getDocs(collection(db, "meetups"));
