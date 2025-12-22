@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Reunion Map</title>
+    <title>CASBS Meetups</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -15,7 +15,7 @@
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
-            <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">Academic Reunion Portal</h1>
+            <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">CASBS Meetups</h1>
             <p class="text-slate-500 text-sm mb-6">Please enter the group access password.</p>
             <input type="password" id="common-pass" placeholder="Password" class="w-full border p-3 rounded mb-4 outline-none focus:ring-2 ring-indigo-500">
             <button id="login-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Unlock Map</button>
@@ -25,7 +25,7 @@
     <div id="map"></div>
 
     <button id="add-btn" class="fixed bottom-8 right-8 z-[1000] bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
-        + Add Reunion
+        + Add Meetup
     </button>
 
     <div id="upload-panel" class="fixed top-0 right-0 h-full w-full md:w-96 bg-white z-[1001] shadow-2xl p-6 overflow-y-auto hidden border-l border-slate-200">
@@ -34,11 +34,11 @@
             <button id="close-panel" class="text-slate-400 text-2xl">✕</button>
         </div>
         
-        <form id="reunion-form" class="space-y-5">
+        <form id="meetup-form" class="space-y-5">
             <p class="text-xs text-indigo-600 font-medium">Step 1: Click the map to set location, or type city.</p>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Location *</label>
-                <input type="text" id="loc" required placeholder="e.g. Paris, France" class="w-full border p-2 rounded mt-1 bg-slate-50">
+                <input type="text" id="loc" required placeholder="e.g. Berlin, Germany" class="w-full border p-2 rounded mt-1 bg-slate-50">
                 <input type="hidden" id="lat"> <input type="hidden" id="lng">
             </div>
             <div>
@@ -46,14 +46,14 @@
                 <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700">Attendees</label>
+                <label class="block text-sm font-semibold text-slate-700">Classmates</label>
                 <input type="text" id="attendees" placeholder="Who was there?" class="w-full border p-2 rounded mt-1">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Date</label>
                 <input type="date" id="date" class="w-full border p-2 rounded mt-1">
             </div>
-            <button type="submit" id="submit-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">Save Reunion</button>
+            <button type="submit" id="submit-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">Save Meetup</button>
         </form>
     </div>
 
@@ -90,7 +90,7 @@
             const pass = document.getElementById('common-pass').value;
             try {
                 // Using the shared group email you created in Firebase Console
-                await signInWithEmailAndPassword(auth, "group@university.edu", pass);
+                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('add-btn').classList.remove('hidden');
                 loadMarkers();
@@ -113,7 +113,7 @@
         });
 
         // --- SAVE DATA ---
-        document.getElementById('reunion-form').onsubmit = async (e) => {
+        document.getElementById('meetup-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
             btn.disabled = true; btn.innerText = "Saving...";
@@ -122,16 +122,16 @@
             let url = null;
 
             if(file) {
-                const sRef = ref(storage, `reunions/${Date.now()}_${file.name}`);
+                const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
                 await uploadBytes(sRef, file);
                 url = await getDownloadURL(sRef);
             }
 
-            await addDoc(collection(db, "reunions"), {
+            await addDoc(collection(db, "meetups"), {
                 lat: parseFloat(document.getElementById('lat').value) || 0,
                 lng: parseFloat(document.getElementById('lng').value) || 0,
                 locationName: document.getElementById('loc').value,
-                attendees: document.getElementById('attendees').value,
+                classmatess: document.getElementById('classmates').value,
                 date: document.getElementById('date').value,
                 imageUrl: url,
                 createdAt: new Date()
@@ -142,7 +142,7 @@
 
         // --- LOAD DATA ---
         async function loadMarkers() {
-            const snap = await getDocs(collection(db, "reunions"));
+            const snap = await getDocs(collection(db, "meetups"));
             snap.forEach((d) => {
                 const data = d.data();
                 const marker = L.marker([data.lat, data.lng]).addTo(map);
@@ -150,7 +150,7 @@
                     <div class="w-48">
                         ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
                         <h3 class="font-bold">${data.locationName}</h3>
-                        <p class="text-sm">${data.attendees || 'Group Member'}</p>
+                        <p class="text-sm">${data.classmates || 'Classmate'}</p>
                         <p class="text-xs text-slate-400">${data.date || ''}</p>
                         <button onclick="window.deleteEntry('${d.id}', '${data.imageUrl}')" class="mt-2 text-red-500 text-xs font-bold uppercase tracking-wider">Delete</button>
                     </div>
@@ -161,9 +161,9 @@
 
         // --- DELETE LOGIC ---
         window.deleteEntry = async (id, url) => {
-            if(!confirm("Delete this reunion permanently?")) return;
+            if(!confirm("Delete this meetup permanently?")) return;
             if(url !== "null" && url) await deleteObject(ref(storage, url));
-            await deleteDoc(doc(db, "reunions", id));
+            await deleteDoc(doc(db, "meetups", id));
             location.reload();
         };
 
