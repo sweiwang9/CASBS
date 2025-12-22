@@ -215,6 +215,11 @@
                 loadMarkers();
             } catch (err) { alert(err.message); btn.disabled = false; }
         };
+
+        // Simple Logout: Refresh the page to reset the state
+        document.getElementById('logout-btn').onclick = () => {
+        location.reload();
+        };
     </script>
 </body>
 </html>
