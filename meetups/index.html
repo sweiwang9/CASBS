@@ -10,31 +10,46 @@
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; background: #cbd5e1; }
         .hidden { display: none !important; }
         .leaflet-popup-content img { border-radius: 8px; margin-top: 5px; }
+        /* Custom scrollbar for popups with many photos */
+        .leaflet-popup-content { max-height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans overflow-hidden">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
-        <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">CASBS Meetups</h1>
-        <p class="text-slate-500 text-sm mb-6">Enter the group access password.</p>
-        <form id="login-form">
-            <input type="password" id="common-pass" placeholder="Password" class="w-full border p-3 rounded mb-4 outline-none focus:ring-2 ring-indigo-500">
-            <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Unlock Map</button>
-        </form>
+        <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
+            <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">CASBS Meetups</h1>
+            <p class="text-slate-500 text-sm mb-6">Enter the group access password.</p>
+            <form id="login-form">
+                <input type="password" id="common-pass" placeholder="Password" class="w-full border p-3 rounded mb-4 outline-none focus:ring-2 ring-indigo-500">
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Unlock Map</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<div id="map" style="display:none;"></div>
+    <div id="gallery-panel" class="fixed inset-0 bg-white z-[3000] overflow-y-auto hidden p-6">
+        <div class="flex justify-between items-center mb-8 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 font-serif">Meetup Gallery</h2>
+            <button id="close-gallery" class="text-slate-500 text-4xl">✕</button>
+        </div>
+        <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-5xl mx-auto"></div>
+    </div>
 
-<button id="logout-btn" class="fixed bottom-8 left-8 z-[1000] bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl hover:bg-slate-700 transition font-bold hidden">
-    Log Out
-</button>
+    <div id="map" style="display:none;"></div>
 
-<button id="add-btn" class="fixed bottom-8 right-8 z-[1000] bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
-    + Add Meetup
-</button>
-    
+    <button id="logout-btn" class="fixed bottom-8 left-8 z-[1000] bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl hover:bg-slate-700 transition font-bold hidden">
+        Log Out
+    </button>
+
+    <div class="fixed bottom-8 right-8 z-[1000] flex flex-col gap-3 items-end">
+        <button id="view-gallery-btn" class="bg-white text-indigo-600 px-6 py-3 rounded-full shadow-xl hover:bg-slate-50 transition font-bold hidden border border-indigo-100">
+            📷 View Gallery
+        </button>
+        <button id="add-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
+            + Add Meetup
+        </button>
+    </div>
+
     <div id="upload-panel" class="fixed top-0 right-0 h-full w-full md:w-96 bg-white z-[1001] shadow-2xl p-6 overflow-y-auto hidden border-l border-slate-200">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-slate-800">New Meetup</h2>
@@ -51,8 +66,8 @@
                 <input type="hidden" id="lat"> <input type="hidden" id="lng">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700">Photo</label>
-                <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1">
+                <label class="block text-sm font-semibold text-slate-700">Photos (Select multiple)</label>
+                <input type="file" id="photo" accept="image/*" multiple class="w-full text-sm mt-1">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Attendees</label>
@@ -69,7 +84,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -87,55 +102,52 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // Map setup
         const map = L.map('map').setView([20, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
         let tempMarker = null;
 
-        // 1. Force logout to show password screen, but wait for ready state
-        window.addEventListener('load', () => {
-            signOut(auth);
-        });
+        // Force logout on fresh load
+        window.addEventListener('load', () => { signOut(auth); });
 
-        // 2. Login button action
-   document.getElementById('login-form').onsubmit = async (e) => {
-    e.preventDefault(); // Prevents page refresh
-    const pass = document.getElementById('common-pass').value;
-    const btn = document.getElementById('login-btn');
-    btn.innerText = "Verifying...";
-    btn.disabled = true;
+        // LOGIN LOGIC (Handles Enter Key)
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const pass = document.getElementById('common-pass').value;
+            const btn = document.getElementById('login-btn');
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
 
-    try {
-        await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('map').style.display = 'block';
-        document.getElementById('add-btn').classList.remove('hidden');
-        document.getElementById('logout-btn').classList.remove('hidden'); // Show logout
-        
-        setTimeout(() => { 
-            map.invalidateSize(); 
-            loadMarkers(); 
-        }, 400);
-    } catch (e) { 
-        alert("Invalid Password"); 
-        btn.innerText = "Unlock Map";
-        btn.disabled = false;
-    }
-};
-
-        // 3. Delete function (Exposed to window for popup buttons)
-        window.deleteEntryGlobal = async (id, url) => {
-            if(!confirm("Delete this meetup?")) return;
             try {
-                if(url && url !== "null" && url.includes("firebasestorage")) {
-                    await deleteObject(ref(storage, url)).catch(e => console.log("Storage delete skip"));
+                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('map').style.display = 'block';
+                document.getElementById('add-btn').classList.remove('hidden');
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('view-gallery-btn').classList.remove('hidden');
+                
+                setTimeout(() => { map.invalidateSize(); loadMarkers(); }, 400);
+            } catch (e) { 
+                alert("Invalid Password"); 
+                btn.innerText = "Unlock Map"; btn.disabled = false;
+            }
+        };
+
+        // DELETE GLOBAL (Handles Multiple URLs)
+        window.deleteEntryGlobal = async (id, urls) => {
+            if(!confirm("Delete this meetup and all its photos?")) return;
+            try {
+                if(urls && Array.isArray(urls)) {
+                    await Promise.all(urls.map(url => deleteObject(ref(storage, url)).catch(() => {})));
                 }
                 await deleteDoc(doc(db, "meetups", id));
                 loadMarkers();
-            } catch (e) { alert("Delete failed. Check Firebase permissions."); }
+                if(!document.getElementById('gallery-panel').classList.contains('hidden')) {
+                    document.getElementById('view-gallery-btn').click(); // Refresh gallery if open
+                }
+            } catch (e) { alert("Delete failed."); }
         };
 
-        // 4. Load Markers
+        // LOAD MARKERS
         async function loadMarkers() {
             map.eachLayer((layer) => { if (layer instanceof L.Marker && layer !== tempMarker) map.removeLayer(layer); });
             const snap = await getDocs(collection(db, "meetups"));
@@ -143,20 +155,45 @@
                 const data = d.data();
                 if (data.lat && data.lng) {
                     const marker = L.marker([data.lat, data.lng]).addTo(map);
+                    const photoHtml = data.imageUrls ? data.imageUrls.map(url => `<img src="${url}" class="w-full h-32 object-cover rounded mb-2">`).join('') : '';
+                    
                     marker.bindPopup(`
                         <div class="w-48">
-                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-full h-32 object-cover rounded mb-2">` : ''}
+                            ${photoHtml}
                             <h3 class="font-bold">${data.locationName || 'Meetup'}</h3>
                             <p class="text-sm">${data.attendees || ''}</p>
                             <p class="text-xs text-slate-400">${data.date || ''}</p>
-                            <button onclick="deleteEntryGlobal('${d.id}', '${data.imageUrl}')" class="text-red-500 text-xs font-bold mt-2">Delete</button>
+                            <button onclick="deleteEntryGlobal('${d.id}', ${JSON.stringify(data.imageUrls || [])})" class="text-red-500 text-xs font-bold mt-2">Delete</button>
                         </div>
                     `);
                 }
             });
         }
 
-        // Search and Map Clicks
+        // GALLERY LOGIC
+        const galleryPanel = document.getElementById('gallery-panel');
+        const galleryGrid = document.getElementById('gallery-grid');
+
+        document.getElementById('view-gallery-btn').onclick = async () => {
+            galleryGrid.innerHTML = "<p class='text-slate-400'>Loading memories...</p>";
+            galleryPanel.classList.remove('hidden');
+            const snap = await getDocs(collection(db, "meetups"));
+            galleryGrid.innerHTML = "";
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.imageUrls && data.imageUrls.length > 0) {
+                    data.imageUrls.forEach(url => {
+                        const div = document.createElement('div');
+                        div.className = "bg-white rounded-lg shadow-md overflow-hidden border border-slate-100";
+                        div.innerHTML = `<img src="${url}" class="w-full h-48 object-cover"><div class="p-2 text-xs font-bold text-slate-700">${data.locationName || ''}</div>`;
+                        galleryGrid.appendChild(div);
+                    });
+                }
+            });
+        };
+        document.getElementById('close-gallery').onclick = () => galleryPanel.classList.add('hidden');
+
+        // MAP SEARCH & INTERACTION
         document.getElementById('search-city-btn').onclick = async () => {
             const q = document.getElementById('loc').value;
             if (!q) return;
@@ -184,30 +221,36 @@
             }
         });
 
-        // Save Function
+        // SAVE MULTI-PHOTO MEETUP
         document.getElementById('meetup-form').onsubmit = async (e) => {
             e.preventDefault();
             const lat = document.getElementById('lat').value;
             const lng = document.getElementById('lng').value;
             if(!lat || !lng) return alert("Select location first!");
+            
             const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = "Saving...";
+            btn.disabled = true; btn.innerText = "Saving Photos...";
+            
             try {
-                const file = document.getElementById('photo').files[0];
-                let url = null;
-                if(file) {
-                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-                    await uploadBytes(sRef, file);
-                    url = await getDownloadURL(sRef);
+                const files = document.getElementById('photo').files;
+                let urls = [];
+                if(files.length > 0) {
+                    urls = await Promise.all(Array.from(files).map(async (file) => {
+                        const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+                        await uploadBytes(sRef, file);
+                        return await getDownloadURL(sRef);
+                    }));
                 }
+
                 await addDoc(collection(db, "meetups"), {
                     lat: parseFloat(lat), lng: parseFloat(lng),
                     locationName: document.getElementById('loc').value,
                     attendees: document.getElementById('attendees').value,
                     date: document.getElementById('date').value,
-                    imageUrl: url, timestamp: serverTimestamp()
+                    imageUrls: urls, timestamp: serverTimestamp()
                 });
-                alert("Saved!");
+
+                alert("Meetup Saved!");
                 document.getElementById('meetup-form').reset();
                 if(tempMarker) map.removeLayer(tempMarker);
                 panel.classList.add('hidden');
@@ -216,18 +259,10 @@
             } catch (err) { alert(err.message); btn.disabled = false; }
         };
 
-        // Simple Logout: Refresh the page to reset the state
-        document.addEventListener('DOMContentLoaded', () => {
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.onclick = () => {
-            // This manually signs out of Firebase AND reloads the page
-            signOut(auth).then(() => {
-                location.reload();
-            });
+        // LOGOUT ACTION
+        document.getElementById('logout-btn').onclick = () => {
+            signOut(auth).then(() => { location.reload(); });
         };
-    }
-});
     </script>
 </body>
 </html>
