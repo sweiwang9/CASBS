@@ -217,9 +217,17 @@
         };
 
         // Simple Logout: Refresh the page to reset the state
-        document.getElementById('logout-btn').onclick = () => {
-        location.reload();
+        document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            // This manually signs out of Firebase AND reloads the page
+            signOut(auth).then(() => {
+                location.reload();
+            });
         };
+    }
+});
     </script>
 </body>
 </html>
