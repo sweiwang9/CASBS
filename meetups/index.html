@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 100vh; width: 100%; z-index: 1; background: #ddd; }
+        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 0; background: #ddd; }
         .hidden { display: none !important; }
+        .leaflet-popup-content img { border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans overflow-hidden">
@@ -16,13 +17,13 @@
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
             <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">CASBS Meetups</h1>
-            <p class="text-slate-500 text-sm mb-6">Please enter the group access password.</p>
+            <p class="text-slate-500 text-sm mb-6">Enter the group access password.</p>
             <input type="password" id="common-pass" placeholder="Password" class="w-full border p-3 rounded mb-4 outline-none focus:ring-2 ring-indigo-500">
             <button id="login-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Unlock Map</button>
         </div>
     </div>
 
-    <div id="map" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh;"></div>
+    <div id="map"></div>
 
     <button id="add-btn" class="fixed bottom-8 right-8 z-[1000] bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
         + Add Meetup
@@ -35,18 +36,18 @@
         </div>
         
         <form id="meetup-form" class="space-y-5">
-            <p class="text-xs text-indigo-600 font-medium">Step 1: Click the map to set location, or type city.</p>
+            <p class="text-xs text-indigo-600 font-medium">Click map to set location, or search city.</p>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Location *</label>
                 <div class="flex gap-2 mt-1">
-                    <input type="text" id="loc" required placeholder="Type city..." class="w-full border p-2 rounded bg-slate-50 text-sm">
+                    <input type="text" id="loc" required placeholder="City name..." class="w-full border p-2 rounded bg-slate-50 text-sm">
                     <button type="button" id="search-city-btn" class="bg-indigo-100 text-indigo-700 px-3 rounded text-sm font-bold">Find</button>
                 </div>
                 <input type="hidden" id="lat"> <input type="hidden" id="lng">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Photo</label>
-                <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1">
+                <input type="file" id="photo" accept="image/*" class="w-full text-sm mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-slate-700">Classmates</label>
@@ -63,11 +64,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        setPersistence(auth, browserSessionPersistence);
 
         const firebaseConfig = {
             apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
@@ -83,7 +82,9 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // Map Init
+        // Fix: Set persistence after auth is initialized
+        setPersistence(auth, browserSessionPersistence);
+
         const map = L.map('map').setView([20, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -91,45 +92,46 @@
 
         let tempMarker = null;
 
-        // Login
+        // Login Logic
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('common-pass').value;
             try {
                 await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('add-btn').classList.remove('hidden');
-                
-                // Force map to recalculate size after login screen is gone
                 setTimeout(() => { 
                     map.invalidateSize();
                     loadMarkers();
                 }, 400);
-
             } catch (e) { alert("Invalid Password"); }
         });
 
-        // Search City
+        // Search Logic
         document.getElementById('search-city-btn').onclick = async () => {
             const query = document.getElementById('loc').value;
             if (!query) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if (data.length > 0) {
-                const { lat, lon, display_name } = data[0];
-                const newPos = [parseFloat(lat), parseFloat(lon)];
-                document.getElementById('lat').value = lat;
-                document.getElementById('lng').value = lon;
-                document.getElementById('loc').value = display_name;
-                if (tempMarker) map.removeLayer(tempMarker);
-                tempMarker = L.marker(newPos).addTo(map);
-                map.setView(newPos, 10);
-            }
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (data.length > 0) {
+                    const { lat, lon, display_name } = data[0];
+                    const newPos = [parseFloat(lat), parseFloat(lon)];
+                    document.getElementById('lat').value = lat;
+                    document.getElementById('lng').value = lon;
+                    document.getElementById('loc').value = display_name;
+                    if (tempMarker) map.removeLayer(tempMarker);
+                    tempMarker = L.marker(newPos).addTo(map);
+                    map.setView(newPos, 10);
+                }
+            } catch (e) { alert("Search failed."); }
         };
 
+        // Panel Toggles
         const panel = document.getElementById('upload-panel');
         document.getElementById('add-btn').onclick = () => panel.classList.toggle('hidden');
         document.getElementById('close-panel').onclick = () => panel.classList.add('hidden');
 
+        // Map Click
         map.on('click', (e) => {
             if(!panel.classList.contains('hidden')) {
                 if(tempMarker) map.removeLayer(tempMarker);
@@ -140,56 +142,55 @@
             }
         });
 
+        // Save Logic (Optimistic UI)
         document.getElementById('meetup-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true; 
-    btn.innerText = "Saving...";
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lng = parseFloat(document.getElementById('lng').value);
+            const locName = document.getElementById('loc').value;
+            const people = document.getElementById('attendees').value;
+            const mDate = document.getElementById('date').value;
+            const file = document.getElementById('photo').files[0];
 
-    const file = document.getElementById('photo').files[0];
-    let url = null;
+            btn.disabled = true; btn.innerText = "Saving...";
 
-    try {
-        if(file) {
-            const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-            await uploadBytes(sRef, file);
-            url = await getDownloadURL(sRef);
-        }
+            try {
+                let url = null;
+                if(file) {
+                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+                    await uploadBytes(sRef, file);
+                    url = await getDownloadURL(sRef);
+                }
 
-        // 1. Save to Firebase
-        await addDoc(collection(db, "meetups"), {
-            lat: parseFloat(document.getElementById('lat').value) || 0,
-            lng: parseFloat(document.getElementById('lng').value) || 0,
-            locationName: document.getElementById('loc').value,
-            attendees: document.getElementById('attendees').value,
-            date: document.getElementById('date').value,
-            imageUrl: url,
-            createdAt: new Date()
-        });
+                const docRef = await addDoc(collection(db, "meetups"), {
+                    lat, lng, locationName: locName, attendees: people, date: mDate, imageUrl: url, createdAt: new Date()
+                });
 
-        // 2. INSTEAD OF RELOAD: Update the UI live
-        alert("Meetup saved successfully!");
-        
-        // Clear the form and hide the panel
-        document.getElementById('meetup-form').reset();
-        if (tempMarker) map.removeLayer(tempMarker);
-        panel.classList.add('hidden');
-        
-        // Refresh markers on the map without reloading the page
-        loadMarkers(); 
+                // Instant UI update
+                const marker = L.marker([lat, lng]).addTo(map);
+                marker.bindPopup(`
+                    <div class="w-48">
+                        ${url ? `<img src="${url}" class="w-full h-32 object-cover rounded mb-2">` : ''}
+                        <h3 class="font-bold">${locName}</h3>
+                        <p class="text-sm">${people || ''}</p>
+                        <p class="text-xs text-slate-400">${mDate || ''}</p>
+                        <button onclick="window.deleteEntry('${docRef.id}', '${url}')" class="text-red-500 text-xs font-bold mt-2">Delete</button>
+                    </div>
+                `).openPopup();
 
-        // Re-enable button
-        btn.disabled = false;
-        btn.innerText = "Save Meetup";
-
-    } catch (err) { 
-        alert("Error saving: " + err.message); 
-        btn.disabled = false; 
-        btn.innerText = "Save Meetup";
-    }
-};
+                document.getElementById('meetup-form').reset();
+                if (tempMarker) map.removeLayer(tempMarker);
+                tempMarker = null;
+                panel.classList.add('hidden');
+                btn.disabled = false; btn.innerText = "Save Meetup";
+            } catch (err) { alert(err.message); btn.disabled = false; }
+        };
 
         async function loadMarkers() {
+            // Clear map (except tiles)
+            map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
+
             const snap = await getDocs(collection(db, "meetups"));
             snap.forEach((d) => {
                 const data = d.data();
@@ -208,9 +209,16 @@
 
         window.deleteEntry = async (id, url) => {
             if(!confirm("Delete permanently?")) return;
-            if(url && url !== "null") await deleteObject(ref(storage, url)).catch(e => console.log(e));
-            await deleteDoc(doc(db, "meetups", id));
-            location.reload();
+            try {
+                // Remove UI marker instantly
+                map.eachLayer((layer) => {
+                    if (layer instanceof L.Marker && layer.getPopup()?.getContent().includes(id)) {
+                        map.removeLayer(layer);
+                    }
+                });
+                if(url && url !== "null") await deleteObject(ref(storage, url)).catch(e => console.log(e));
+                await deleteDoc(doc(db, "meetups", id));
+            } catch (e) { alert("Delete failed"); loadMarkers(); }
         };
     </script>
 </body>
