@@ -174,11 +174,25 @@
         }
 
         window.deleteEntry = async (id, url) => {
-            if(!confirm("Delete?")) return;
-            if(url && url !== "null") await deleteObject(ref(storage, url)).catch(e => console.log(e));
-            await deleteDoc(doc(db, "meetups", id));
-            location.reload();
-        };
+        if(!confirm("Delete this meetup permanently?")) return;
+    
+        try {
+        // Only try to delete the image if a valid URL exists
+        if(url && url !== "null" && url !== "" && url.includes("firebasestorage")) {
+            const imageRef = ref(storage, url);
+            await deleteObject(imageRef).catch(e => console.log("Image not found in storage, skipping..."));
+        }
+        
+        // Delete the document from Firestore
+        await deleteDoc(doc(db, "meetups", id));
+        
+        alert("Deleted!");
+        location.reload();
+        } catch (err) { 
+        console.error(err);
+        alert("Delete failed: " + err.message); 
+    }
+};
     </script>
 </body>
 </html>
