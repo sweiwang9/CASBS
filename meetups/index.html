@@ -63,7 +63,8 @@
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
         // --- CONFIGURATION ---
         const firebaseConfig = {
   apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
@@ -79,6 +80,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
+        const analytics = getAnalytics(app);
 
         // --- MAP INITIALIZATION ---
         const map = L.map('map').setView([20, 0], 2);
