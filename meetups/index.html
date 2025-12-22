@@ -98,28 +98,30 @@
         });
 
         // 2. Login button action
-        document.getElementById('login-btn').onclick = async () => {
-            const pass = document.getElementById('common-pass').value;
-            const btn = document.getElementById('login-btn');
-            btn.innerText = "Verifying...";
-            btn.disabled = true;
+   document.getElementById('login-form').onsubmit = async (e) => {
+    e.preventDefault(); // Prevents page refresh
+    const pass = document.getElementById('common-pass').value;
+    const btn = document.getElementById('login-btn');
+    btn.innerText = "Verifying...";
+    btn.disabled = true;
 
-            try {
-                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('map').style.display = 'block';
-                document.getElementById('add-btn').classList.remove('hidden');
-                
-                setTimeout(() => { 
-                    map.invalidateSize(); 
-                    loadMarkers(); 
-                }, 400);
-            } catch (e) { 
-                alert("Invalid Password"); 
-                btn.innerText = "Unlock Map";
-                btn.disabled = false;
-            }
-        };
+    try {
+        await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('map').style.display = 'block';
+        document.getElementById('add-btn').classList.remove('hidden');
+        document.getElementById('logout-btn').classList.remove('hidden'); // Show logout
+        
+        setTimeout(() => { 
+            map.invalidateSize(); 
+            loadMarkers(); 
+        }, 400);
+    } catch (e) { 
+        alert("Invalid Password"); 
+        btn.innerText = "Unlock Map";
+        btn.disabled = false;
+    }
+};
 
         // 3. Delete function (Exposed to window for popup buttons)
         window.deleteEntryGlobal = async (id, url) => {
