@@ -75,7 +75,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -97,15 +97,23 @@
         let tempMarker = null;
         let existingPhotos = [];
 
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            try {
-                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", document.getElementById('common-pass').value);
+        // PERSISTENT LOGIN CHECK
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('map').style.display = 'block';
                 ['add-btn', 'view-gallery-btn', 'logout-btn'].forEach(id => document.getElementById(id).classList.remove('hidden'));
                 setTimeout(() => { map.invalidateSize(); loadMarkers(); }, 400);
-            } catch (err) { alert("Invalid Password"); }
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('map').style.display = 'none';
+            }
+        });
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", document.getElementById('common-pass').value); } 
+            catch (err) { alert("Invalid Password"); }
         };
 
         async function loadMarkers() {
@@ -119,8 +127,7 @@
                     marker.bindPopup(`
                         <div class="space-y-2">
                             ${imgs}
-                            <h3 class="font-bold">${data.locationName}</h3>
-                            <p class="text-xs">${data.attendees || ''} - ${data.date || ''}</p>
+                            <h3 class="font-bold">${data.locationName || 'Unnamed'}</h3>
                             <p class="text-xs italic">${data.notes || ''}</p>
                             <div class="flex gap-3 pt-1">
                                 <button onclick='editEntryGlobal("${d.id}")' class="text-indigo-600 font-bold text-xs">Edit</button>
@@ -137,9 +144,9 @@
             const data = docSnap.data();
             document.getElementById('edit-id').value = id;
             document.getElementById('panel-title').innerText = "Edit Meetup";
-            document.getElementById('loc').value = data.locationName;
-            document.getElementById('lat').value = data.lat;
-            document.getElementById('lng').value = data.lng;
+            document.getElementById('loc').value = data.locationName || "";
+            document.getElementById('lat').value = data.lat || "";
+            document.getElementById('lng').value = data.lng || "";
             document.getElementById('attendees').value = data.attendees || "";
             document.getElementById('date').value = data.date || "";
             document.getElementById('notes').value = data.notes || "";
@@ -147,6 +154,7 @@
             document.getElementById('existing-count').innerText = `${existingPhotos.length} existing photos`;
             document.getElementById('existing-count').classList.remove('hidden');
             document.getElementById('upload-panel').classList.remove('hidden');
+            document.getElementById('gallery-panel').classList.add('hidden'); // Close gallery if editing from it
         };
 
         document.getElementById('meetup-form').onsubmit = async (e) => {
@@ -174,7 +182,12 @@
                 };
                 if (editId) await updateDoc(doc(db, "meetups", editId), payload);
                 else await addDoc(collection(db, "meetups"), { ...payload, timestamp: serverTimestamp() });
-                location.reload();
+                
+                alert("Meetup Saved!");
+                document.getElementById('meetup-form').reset();
+                document.getElementById('upload-panel').classList.add('hidden');
+                btn.disabled = false; btn.innerText = "Save Meetup";
+                loadMarkers(); 
             } catch (err) { alert(err.message); btn.disabled = false; }
         };
 
@@ -192,12 +205,15 @@
                 section.innerHTML = `
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-xl font-bold">${data.locationName}</h3>
-                            <p class="text-sm text-slate-500">${data.date || ''} • ${data.attendees || ''}</p>
+                            <h3 class="text-xl font-bold">${data.locationName || 'Untitled'}</h3>
+                            <p class="text-sm text-slate-500">${data.date || ''}</p>
                         </div>
-                        <button onclick='downloadGrp(${JSON.stringify(data.imageUrls)})' class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">Download All</button>
+                        <div class="flex gap-2">
+                            <button onclick='editEntryGlobal("${d.id}")' class="text-xs bg-slate-100 px-3 py-1 rounded-full font-bold">Edit</button>
+                            <button onclick='deleteEntryGlobal("${d.id}", ${JSON.stringify(data.imageUrls || [])})' class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full font-bold">Delete</button>
+                            <button onclick='downloadGrp(${JSON.stringify(data.imageUrls)})' class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">Download All</button>
+                        </div>
                     </div>
-                    <p class="text-sm mb-4 text-slate-600 italic">${data.notes || ''}</p>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">${imgs}</div>
                 `;
                 grid.appendChild(section);
@@ -206,13 +222,14 @@
 
         window.downloadGrp = (urls) => urls.forEach(u => window.open(u, '_blank'));
         window.deleteEntryGlobal = async (id, urls) => {
-            if(!confirm("Delete this?")) return;
+            if(!confirm("Delete this meetup?")) return;
             for(const u of urls) await deleteObject(ref(storage, u)).catch(()=>{});
             await deleteDoc(doc(db, "meetups", id));
             loadMarkers();
+            if(!document.getElementById('gallery-panel').classList.contains('hidden')) document.getElementById('view-gallery-btn').click();
         };
 
-        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
         document.getElementById('search-city-btn').onclick = async () => {
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(document.getElementById('loc').value)}`);
             const data = await res.json();
