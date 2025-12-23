@@ -10,7 +10,8 @@
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; background: #cbd5e1; }
         .hidden { display: none !important; }
         .leaflet-popup-content img { border-radius: 8px; margin-top: 5px; width: 100%; height: auto; }
-        .leaflet-popup-content { max-height: 300px; overflow-y: auto; width: 220px !important; }
+        .leaflet-popup-content { max-height: 350px; overflow-y: auto; width: 220px !important; }
+        .gallery-img { width: 100%; height: 180px; object-fit: contain; background: #f8fafc; border-radius: 6px; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans overflow-hidden">
@@ -18,10 +19,9 @@
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center">
             <h1 class="text-2xl font-serif font-bold text-slate-800 mb-2">CASBS Meetups</h1>
-            <p class="text-slate-500 text-sm mb-6">Please enter the password.</p>
             <form id="login-form">
                 <input type="password" id="common-pass" placeholder="Password" class="w-full border p-3 rounded mb-4 outline-none focus:ring-2 ring-indigo-500">
-                <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Unlock Map</button>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">Unlock Map</button>
             </form>
         </div>
     </div>
@@ -31,7 +31,7 @@
             <h2 class="text-3xl font-bold text-slate-800 font-serif">Meetup Gallery</h2>
             <button id="close-gallery" class="text-slate-500 text-4xl">✕</button>
         </div>
-        <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto"></div>
+        <div id="gallery-grid" class="space-y-12 max-w-5xl mx-auto pb-20"></div>
     </div>
 
     <div id="map" style="display:none;"></div>
@@ -41,49 +41,42 @@
     </button>
 
     <div class="fixed bottom-8 right-8 z-[1000] flex flex-col gap-3 items-end">
-        <button id="view-gallery-btn" class="bg-white text-indigo-600 px-6 py-3 rounded-full shadow-xl hover:bg-slate-50 transition font-bold hidden border border-indigo-200">
-            📷 View Gallery
-        </button>
-        <button id="add-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl hover:scale-105 transition font-bold hidden">
-            + Add Meetup
-        </button>
+        <button id="view-gallery-btn" class="bg-white text-indigo-600 px-6 py-3 rounded-full shadow-xl font-bold hidden border border-indigo-200">📷 Gallery</button>
+        <button id="add-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-full shadow-xl font-bold hidden">+ Add Meetup</button>
     </div>
 
-    <div id="upload-panel" class="fixed top-0 right-0 h-full w-full md:w-96 bg-white z-[1001] shadow-2xl p-6 overflow-y-auto hidden border-l border-slate-200">
+    <div id="upload-panel" class="fixed top-0 right-0 h-full w-full md:w-96 bg-white z-[1001] shadow-2xl p-6 overflow-y-auto hidden border-l">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-slate-800">New Meetup</h2>
+            <h2 id="panel-title" class="text-xl font-bold text-slate-800">New Meetup</h2>
             <button id="close-panel" class="text-slate-400 text-2xl">✕</button>
         </div>
-        <form id="meetup-form" class="space-y-5">
+        <form id="meetup-form" class="space-y-4">
+            <input type="hidden" id="edit-id">
             <div>
-                <label class="block text-sm font-semibold text-slate-700">Location *</label>
-                <div class="flex gap-2 mt-1">
-                    <input type="text" id="loc" required placeholder="Search city..." class="w-full border p-2 rounded bg-slate-50 text-sm">
-                    <button type="button" id="search-city-btn" class="bg-indigo-100 text-indigo-700 px-3 rounded text-sm font-bold">Find</button>
+                <label class="text-sm font-semibold">Location</label>
+                <div class="flex gap-2">
+                    <input type="text" id="loc" required class="w-full border p-2 rounded text-sm bg-slate-50">
+                    <button type="button" id="search-city-btn" class="bg-indigo-100 px-3 rounded text-sm font-bold">Find</button>
                 </div>
                 <input type="hidden" id="lat"> <input type="hidden" id="lng">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700">Photos</label>
-                <input type="file" id="photo" accept="image/*" multiple class="w-full text-sm mt-1">
+                <label class="text-sm font-semibold">Photos</label>
+                <input type="file" id="photo" accept="image/*" multiple class="w-full text-sm">
+                <p id="existing-count" class="text-xs text-indigo-600 mt-1 hidden"></p>
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-slate-700">Attendees</label>
-                <input type="text" id="attendees" placeholder="Who met up?" class="w-full border p-2 rounded mt-1">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-slate-700">Date</label>
-                <input type="date" id="date" class="w-full border p-2 rounded mt-1">
-            </div>
-            <button type="submit" id="submit-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">Save Meetup</button>
+            <input type="text" id="attendees" placeholder="Attendees" class="w-full border p-2 rounded">
+            <input type="date" id="date" class="w-full border p-2 rounded">
+            <textarea id="notes" placeholder="Notes" rows="3" class="w-full border p-2 rounded"></textarea>
+            <button type="submit" id="submit-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold">Save Meetup</button>
         </form>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -99,65 +92,105 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
-
         const map = L.map('map').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         let tempMarker = null;
+        let existingPhotos = [];
 
-        window.addEventListener('load', () => { signOut(auth); });
-
-        // LOGIN
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const pass = document.getElementById('common-pass').value;
-            try {
-                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
+        // PERSISTENT LOGIN CHECK
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('map').style.display = 'block';
-                document.getElementById('add-btn').classList.remove('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('view-gallery-btn').classList.remove('hidden');
+                ['add-btn', 'view-gallery-btn', 'logout-btn'].forEach(id => document.getElementById(id).classList.remove('hidden'));
                 setTimeout(() => { map.invalidateSize(); loadMarkers(); }, 400);
-            } catch (err) { alert("Invalid Password"); }
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('map').style.display = 'none';
+            }
+        });
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", document.getElementById('common-pass').value); } 
+            catch (err) { alert("Invalid Password"); }
         };
 
-        // DELETE
-        window.deleteEntryGlobal = async (id, urlsJson) => {
-            if(!confirm("Delete this meetup?")) return;
-            try {
-                if(urlsJson && Array.isArray(urlsJson)) {
-                    for(const url of urlsJson) {
-                        await deleteObject(ref(storage, url)).catch(() => {});
-                    }
-                }
-                await deleteDoc(doc(db, "meetups", id));
-                loadMarkers();
-                document.getElementById('gallery-panel').classList.add('hidden');
-            } catch (e) { alert("Delete failed"); }
-        };
-
-        // LOAD MARKERS
         async function loadMarkers() {
             map.eachLayer(l => { if(l instanceof L.Marker && l !== tempMarker) map.removeLayer(l); });
             const snap = await getDocs(collection(db, "meetups"));
             snap.forEach(d => {
                 const data = d.data();
-                if (data.lat && data.lng) {
+                if(data.lat && data.lng) {
                     const marker = L.marker([data.lat, data.lng]).addTo(map);
                     const imgs = (data.imageUrls || []).map(u => `<img src="${u}">`).join('');
                     marker.bindPopup(`
                         <div class="space-y-2">
                             ${imgs}
-                            <h3 class="font-bold">${data.locationName || ''}</h3>
-                            <p class="text-xs">${data.attendees || ''} - ${data.date || ''}</p>
-                            <button onclick='deleteEntryGlobal("${d.id}", ${JSON.stringify(data.imageUrls || [])})' class="text-red-500 font-bold text-xs">Delete</button>
+                            <h3 class="font-bold">${data.locationName || 'Unnamed'}</h3>
+                            <p class="text-xs italic">${data.notes || ''}</p>
+                            <div class="flex gap-3 pt-1">
+                                <button onclick='editEntryGlobal("${d.id}")' class="text-indigo-600 font-bold text-xs">Edit</button>
+                                <button onclick='deleteEntryGlobal("${d.id}", ${JSON.stringify(data.imageUrls || [])})' class="text-red-500 font-bold text-xs">Delete</button>
+                            </div>
                         </div>
                     `);
                 }
             });
         }
 
-        // GALLERY
+        window.editEntryGlobal = async (id) => {
+            const docSnap = await getDoc(doc(db, "meetups", id));
+            const data = docSnap.data();
+            document.getElementById('edit-id').value = id;
+            document.getElementById('panel-title').innerText = "Edit Meetup";
+            document.getElementById('loc').value = data.locationName || "";
+            document.getElementById('lat').value = data.lat || "";
+            document.getElementById('lng').value = data.lng || "";
+            document.getElementById('attendees').value = data.attendees || "";
+            document.getElementById('date').value = data.date || "";
+            document.getElementById('notes').value = data.notes || "";
+            existingPhotos = data.imageUrls || [];
+            document.getElementById('existing-count').innerText = `${existingPhotos.length} existing photos`;
+            document.getElementById('existing-count').classList.remove('hidden');
+            document.getElementById('upload-panel').classList.remove('hidden');
+            document.getElementById('gallery-panel').classList.add('hidden'); // Close gallery if editing from it
+        };
+
+        document.getElementById('meetup-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const editId = document.getElementById('edit-id').value;
+            btn.disabled = true; btn.innerText = "Saving...";
+            try {
+                const files = document.getElementById('photo').files;
+                let newUrls = [];
+                for(const file of Array.from(files)) {
+                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
+                    await uploadBytes(sRef, file);
+                    newUrls.push(await getDownloadURL(sRef));
+                }
+                const finalUrls = editId ? [...existingPhotos, ...newUrls] : newUrls;
+                const payload = {
+                    lat: parseFloat(document.getElementById('lat').value),
+                    lng: parseFloat(document.getElementById('lng').value),
+                    locationName: document.getElementById('loc').value,
+                    attendees: document.getElementById('attendees').value,
+                    date: document.getElementById('date').value,
+                    notes: document.getElementById('notes').value,
+                    imageUrls: finalUrls
+                };
+                if (editId) await updateDoc(doc(db, "meetups", editId), payload);
+                else await addDoc(collection(db, "meetups"), { ...payload, timestamp: serverTimestamp() });
+                
+                alert("Meetup Saved!");
+                document.getElementById('meetup-form').reset();
+                document.getElementById('upload-panel').classList.add('hidden');
+                btn.disabled = false; btn.innerText = "Save Meetup";
+                loadMarkers(); 
+            } catch (err) { alert(err.message); btn.disabled = false; }
+        };
+
         document.getElementById('view-gallery-btn').onclick = async () => {
             const grid = document.getElementById('gallery-grid');
             grid.innerHTML = "Loading...";
@@ -166,20 +199,39 @@
             grid.innerHTML = "";
             snap.forEach(d => {
                 const data = d.data();
-                (data.imageUrls || []).forEach(url => {
-                    const div = document.createElement('div');
-                    div.className = "bg-slate-100 rounded shadow-sm overflow-hidden";
-                    div.innerHTML = `<img src="${url}" class="w-full h-40 object-cover">`;
-                    grid.appendChild(div);
-                });
+                const section = document.createElement('div');
+                section.className = "bg-white p-6 rounded-xl shadow-sm border border-slate-100";
+                const imgs = (data.imageUrls || []).map(u => `<img src="${u}" class="gallery-img">`).join('');
+                section.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">${data.locationName || 'Untitled'}</h3>
+                            <p class="text-sm text-slate-500">${data.date || ''}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick='editEntryGlobal("${d.id}")' class="text-xs bg-slate-100 px-3 py-1 rounded-full font-bold">Edit</button>
+                            <button onclick='deleteEntryGlobal("${d.id}", ${JSON.stringify(data.imageUrls || [])})' class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full font-bold">Delete</button>
+                            <button onclick='downloadGrp(${JSON.stringify(data.imageUrls)})' class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">Download All</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">${imgs}</div>
+                `;
+                grid.appendChild(section);
             });
         };
-        document.getElementById('close-gallery').onclick = () => document.getElementById('gallery-panel').classList.add('hidden');
 
-        // MAP UI
+        window.downloadGrp = (urls) => urls.forEach(u => window.open(u, '_blank'));
+        window.deleteEntryGlobal = async (id, urls) => {
+            if(!confirm("Delete this meetup?")) return;
+            for(const u of urls) await deleteObject(ref(storage, u)).catch(()=>{});
+            await deleteDoc(doc(db, "meetups", id));
+            loadMarkers();
+            if(!document.getElementById('gallery-panel').classList.contains('hidden')) document.getElementById('view-gallery-btn').click();
+        };
+
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
         document.getElementById('search-city-btn').onclick = async () => {
-            const q = document.getElementById('loc').value;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(document.getElementById('loc').value)}`);
             const data = await res.json();
             if (data[0]) {
                 const pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
@@ -191,9 +243,14 @@
             }
         };
 
-        document.getElementById('add-btn').onclick = () => document.getElementById('upload-panel').classList.toggle('hidden');
+        document.getElementById('add-btn').onclick = () => {
+            document.getElementById('meetup-form').reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('existing-count').classList.add('hidden');
+            document.getElementById('upload-panel').classList.toggle('hidden');
+        };
         document.getElementById('close-panel').onclick = () => document.getElementById('upload-panel').classList.add('hidden');
-        
+        document.getElementById('close-gallery').onclick = () => document.getElementById('gallery-panel').classList.add('hidden');
         map.on('click', (e) => {
             if(!document.getElementById('upload-panel').classList.contains('hidden')) {
                 if(tempMarker) map.removeLayer(tempMarker);
@@ -202,35 +259,6 @@
                 document.getElementById('lng').value = e.latlng.lng;
             }
         });
-
-        // SAVE
-        document.getElementById('meetup-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = "Saving...";
-            try {
-                const files = document.getElementById('photo').files;
-                let urls = [];
-                for(const file of Array.from(files)) {
-                    const sRef = ref(storage, `meetups/${Date.now()}_${file.name}`);
-                    await uploadBytes(sRef, file);
-                    urls.push(await getDownloadURL(sRef));
-                }
-                await addDoc(collection(db, "meetups"), {
-                    lat: parseFloat(document.getElementById('lat').value),
-                    lng: parseFloat(document.getElementById('lng').value),
-                    locationName: document.getElementById('loc').value,
-                    attendees: document.getElementById('attendees').value,
-                    date: document.getElementById('date').value,
-                    imageUrls: urls,
-                    timestamp: serverTimestamp()
-                });
-                alert("Saved!");
-                location.reload(); 
-            } catch (err) { alert(err.message); btn.disabled = false; }
-        };
-
-        document.getElementById('logout-btn').onclick = () => { signOut(auth).then(() => location.reload()); };
     </script>
 </body>
 </html>
