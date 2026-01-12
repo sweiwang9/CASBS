@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Knope Compliment Generator</title>
+    <style>
+        :root {
+            --pawnee-blue: #003366;
+            --knope-yellow: #FFD700;
+            --paper-white: #fdfbf7;
+            --text-grey: #333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--pawnee-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: var(--paper-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 600px;
+            border: 10px solid var(--knope-yellow);
+        }
+
+        h1 {
+            color: var(--pawnee-blue);
+            font-family: 'Georgia', serif;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h3 {
+            color: #777;
+            font-weight: normal;
+            margin-top: 0;
+            font-style: italic;
+        }
+
+        #compliment-box {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-grey);
+            min-height: 120px; /* Prevents jumping */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            line-height: 1.4;
+        }
+
+        button {
+            background-color: var(--pawnee-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: #004080;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .highlight {
+            color: #d35400; /* A nice rust color for emphasis */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Knope Compliment Generator</h1>
+        <h3>For the Ann Perkins in your life</h3>
+        
+        <div id="compliment-box">
+            Click the button to generate some positivity!
+        </div>
+
+        <button onclick="generateCompliment()">Generatize!</button>
+    </div>
+
+    <script>
+        // BUCKET A: The "Vibe" (Abstract/High Concept)
+        const bucketA = [
+            "poetic", "opalescent", "brilliant", "tricky", 
+            "glowing", "radiant", "ambiguous", "noble", 
+            "cunning", "resilient", "ethereal", "majestic"
+        ];
+
+        // BUCKET B: The "Descriptor" (Physical/Nature/Specific)
+        const bucketB = [
+            "tropical", "rule-breaking", "chestnut-haired", "newborn", 
+            "sun-dappled", "purebred", "sophisticated", "rainbow-infused", 
+            "pliable", "land-dwelling", "sassy", "naive"
+        ];
+
+        // BUCKET C: The "Noun" (Animal/Object)
+        const bucketC = [
+            "land-mermaid", "musk-ox", "sunflower", "tree-shark", 
+            "sunfish", "moth", "spinster", "space-unicorn", 
+            "golden retriever", "mannequin", "sun-goddess", "minx"
+        ];
+
+        function generateCompliment() {
+            // Pick random words
+            const adj1 = bucketA[Math.floor(Math.random() * bucketA.length)];
+            const adj2 = bucketB[Math.floor(Math.random() * bucketB.length)];
+            const noun = bucketC[Math.floor(Math.random() * bucketC.length)];
+
+            // Construct the sentence
+            // Sometimes Leslie uses "Ann, you [A], [B] [C]" and sometimes just "Ann, you [A] [C]"
+            // Let's stick to the 3-word combo for maximum effect.
+            
+            const phrase = `Ann, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
+
+            // Update the HTML
+            document.getElementById("compliment-box").innerHTML = phrase;
+        }
+    </script>
+</body>
+</html>
