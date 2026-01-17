@@ -25,7 +25,6 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            /* Sleek Gradient Background */
             background: linear-gradient(135deg, var(--irish-green) 0%, var(--deep-green) 100%);
             display: flex;
             justify-content: center;
@@ -39,7 +38,6 @@
             background-color: var(--pure-white);
             padding: 40px;
             border-radius: 20px;
-            /* Modern soft shadow */
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             text-align: center;
             max-width: 500px;
@@ -49,14 +47,14 @@
             border-bottom: 8px solid var(--olympic-gold);
         }
 
-        /* OLYMPIC RINGS CSS IMPLEMENTATION */
+        /* OLYMPIC RINGS CSS */
         .olympic-rings {
             display: flex;
             justify-content: center;
             position: relative;
             height: 60px;
             width: 140px;
-            margin: 0 auto 20px auto;
+            margin: 0 auto 10px auto;
         }
 
         .ring {
@@ -91,37 +89,52 @@
             letter-spacing: 2px;
         }
 
-        /* Mascot Area */
-        .mascot-container {
-            margin: 10px auto;
-            height: 120px;
+        /* MASCOT SECTION */
+        .mascot-row {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end;
+            gap: 20px;
+            margin: 20px 0;
+            height: 120px;
         }
-        
+
+        .mascot-item {
+            text-align: center;
+        }
+
         .mascot-img {
-            height: 100%;
+            height: 100px; /* Base height */
             width: auto;
-            /* subtle hover effect */
             transition: transform 0.3s ease;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            display: block;
+            margin: 0 auto;
         }
+
+        .mascot-caption {
+            font-size: 0.6rem;
+            color: #999;
+            margin-top: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
         .mascot-img:hover {
             transform: scale(1.1) rotate(-5deg);
         }
 
+        /* TEXT BOX FIXES */
         #compliment-box {
             font-size: 1.4rem;
             font-weight: 700;
             color: #333;
             min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            /* Changed from flex to block to fix spacing issues */
+            display: block; 
+            padding: 30px 20px;
             margin: 20px 0;
-            line-height: 1.4;
-            padding: 20px;
+            line-height: 1.5;
             background: var(--off-white);
             border-radius: 12px;
         }
@@ -159,10 +172,10 @@
             text-decoration-thickness: 3px;
         }
         
-        /* Mobile optimization */
         @media (max-width: 480px) {
             .container { padding: 25px; }
             h1 { font-size: 1.5rem; }
+            .mascot-img { height: 80px; }
         }
     </style>
 </head>
@@ -177,21 +190,31 @@
             <div class="ring red"></div>
         </div>
 
-        <h1>Ann Owens Generator</h1>
-        <h3>Gold Medal Compliments</h3>
+        <h1>Ann Owens Compliment Generator</h1>
+        <h3></h3>
 
-        <div class="mascot-container">
-            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/1984_Summer_Olympics_mascot.png/220px-1984_Summer_Olympics_mascot.png" 
-                 alt="Sam the Eagle - LA 1984 Mascot" 
-                 class="mascot-img"
-                 title="Sam the Eagle (LA 1984)">
+        <div class="mascot-row">
+            <div class="mascot-item">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/26/Scottish_Terrier_1915.jpg" 
+                     alt="Scottish Terrier" 
+                     class="mascot-img"
+                     style="height: 80px; border-radius: 50%; border: 2px solid #ddd;">
+                <div class="mascot-caption">1932: Smoky (Unofficial)</div>
+            </div>
+
+            <div class="mascot-item">
+                <img src="https://upload.wikimedia.org/wikipedia/en/e/e3/1984_Summer_Olympics_mascot.png" 
+                     alt="Sam the Eagle" 
+                     class="mascot-img">
+                <div class="mascot-caption">1984: Sam the Eagle</div>
+            </div>
         </div>
         
         <div id="compliment-box">
-             Click the button for a podium finish!
+             Go for Gold!
         </div>
 
-        <button onclick="generateCompliment()">Award Gold Medal</button>
+        <button onclick="generateCompliment()">PEP!</button>
     </div>
 
     <script>
@@ -199,21 +222,21 @@
         const bucketA = [
             "poetic", "opalescent", "brilliant", "tricky", 
             "glowing", "radiant", "noble", 
-            "cunning", "resilient", "ethereal", "majestic", "world-class"
+            "cunning", "resilient", "ethereal", "majestic"
         ];
 
         // BUCKET B: The "Descriptor"
         const bucketB = [
             "tropical", "rule-breaking", "chestnut-haired", "newborn", 
             "sun-dappled", "purebred", "sophisticated", "rainbow-infused", 
-            "pliable", "land-dwelling", "sassy", "podium-topping"
+            "pliable", "land-dwelling", "sassy" 
         ];
 
         // BUCKET C: The "Noun"
         const bucketC = [
             "land-mermaid", "musk-ox", "sunflower", "tree-shark", 
             "sunfish", "moth", "space-unicorn", 
-            "golden retriever", "sun-goddess", "minx", "champion"
+            "golden retriever", "sun-goddess", "minx"
         ];
 
         function generateCompliment() {
@@ -221,7 +244,7 @@
             const adj2 = bucketB[Math.floor(Math.random() * bucketB.length)];
             const noun = bucketC[Math.floor(Math.random() * bucketC.length)];
             
-            // Updated to say "Ann Owens" as requested by the header change
+            // Added explicit spaces between the HTML tags just in case
             const phrase = `Ann Owens, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
 
             document.getElementById("compliment-box").innerHTML = phrase;
