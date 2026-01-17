@@ -218,33 +218,33 @@
     </div>
 
     <script>
-        // BUCKET A: The "Vibe"
-        const bucketA = [
-            "poetic", "opalescent", "brilliant", "tricky", 
-            "glowing", "radiant", "noble", 
-            "cunning", "resilient", "ethereal", "majestic"
-        ];
+        // Initialize empty buckets
+        let bucketA = [];
+        let bucketB = [];
+        let bucketC = [];
 
-        // BUCKET B: The "Descriptor"
-        const bucketB = [
-            "tropical", "rule-breaking", "chestnut-haired", "newborn", 
-            "sun-dappled", "sophisticated", "rainbow-infused", 
-            "pliable", "sassy" 
-        ];
-
-        // BUCKET C: The "Noun"
-        const bucketC = [
-            "land mermaid", "musk ox", "sunflower", "tree shark", 
-            "sunfish", "moth", "space unicorn", 
-            "golden retriever", "sun goddess", "minx"
-        ];
+        // 1. LOAD WORDS FROM THE JSON FILE
+        fetch('words.json?v=' + new Date().getTime()) // unique timestamp prevents caching old versions
+            .then(response => response.json())
+            .then(data => {
+                bucketA = data.bucketA;
+                bucketB = data.bucketB;
+                bucketC = data.bucketC;
+                console.log("Words loaded successfully!");
+            })
+            .catch(error => console.error('Error loading words:', error));
 
         function generateCompliment() {
+            // Safety check: ensure words are loaded
+            if (bucketA.length === 0) {
+                document.getElementById("compliment-box").innerHTML = "Loading words... try again in a second!";
+                return;
+            }
+
             const adj1 = bucketA[Math.floor(Math.random() * bucketA.length)];
             const adj2 = bucketB[Math.floor(Math.random() * bucketB.length)];
             const noun = bucketC[Math.floor(Math.random() * bucketC.length)];
             
-            // Note: The spaces are explicitly included in the string below
             const phrase = `Ann, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
 
             document.getElementById("compliment-box").innerHTML = phrase;
