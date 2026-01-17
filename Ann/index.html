@@ -195,7 +195,7 @@
 
         <div class="mascot-row">
             <div class="mascot-item">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/26/Scottish_Terrier_1915.jpg" 
+                <img src="smoky.jpeg" 
                      alt="Scottish Terrier" 
                      class="mascot-img"
                      style="height: 80px; border-radius: 50%; border: 2px solid #ddd;">
@@ -203,7 +203,7 @@
             </div>
 
             <div class="mascot-item">
-                <img src="https://upload.wikimedia.org/wikipedia/en/e/e3/1984_Summer_Olympics_mascot.png" 
+                <img src="sam.png" 
                      alt="Sam the Eagle" 
                      class="mascot-img">
                 <div class="mascot-caption">1984: Sam the Eagle</div>
@@ -244,8 +244,8 @@
             const adj2 = bucketB[Math.floor(Math.random() * bucketB.length)];
             const noun = bucketC[Math.floor(Math.random() * bucketC.length)];
             
-            // Added explicit spaces between the HTML tags just in case
-            const phrase = `Ann Owens, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
+            // Note: The spaces are explicitly included in the string below
+            const phrase = `Ann, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
 
             document.getElementById("compliment-box").innerHTML = phrase;
         }
