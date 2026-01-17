@@ -8,14 +8,11 @@
     
     <style>
         :root {
-            /* Irish Green Palette */
             --irish-green: #009A49; 
             --deep-green: #004d25;
             --olympic-gold: #D6AF36;
             --pure-white: #ffffff;
             --off-white: #f4f4f4;
-            
-            /* Olympic Ring Colors */
             --ring-blue: #0081C8;
             --ring-yellow: #FCB131;
             --ring-black: #000000;
@@ -43,11 +40,9 @@
             max-width: 500px;
             width: 100%;
             position: relative;
-            overflow: hidden;
             border-bottom: 8px solid var(--olympic-gold);
         }
 
-        /* OLYMPIC RINGS CSS */
         .olympic-rings {
             display: flex;
             justify-content: center;
@@ -89,7 +84,6 @@
             letter-spacing: 2px;
         }
 
-        /* MASCOT SECTION */
         .mascot-row {
             display: flex;
             justify-content: center;
@@ -99,12 +93,10 @@
             height: 120px;
         }
 
-        .mascot-item {
-            text-align: center;
-        }
+        .mascot-item { text-align: center; }
 
         .mascot-img {
-            height: 100px; /* Base height */
+            height: 100px;
             width: auto;
             transition: transform 0.3s ease;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
@@ -120,17 +112,13 @@
             font-weight: bold;
         }
 
-        .mascot-img:hover {
-            transform: scale(1.1) rotate(-5deg);
-        }
+        .mascot-img:hover { transform: scale(1.1) rotate(-5deg); }
 
-        /* TEXT BOX FIXES */
         #compliment-box {
             font-size: 1.4rem;
             font-weight: 700;
             color: #333;
             min-height: 100px;
-            /* Changed from flex to block to fix spacing issues */
             display: block; 
             padding: 30px 20px;
             margin: 20px 0;
@@ -158,12 +146,9 @@
         button:hover {
             background-color: var(--deep-green);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 154, 73, 0.6);
         }
 
-        button:active {
-            transform: translateY(1px);
-        }
+        button:active { transform: translateY(1px); }
 
         .highlight {
             color: var(--irish-green);
@@ -171,7 +156,141 @@
             text-decoration-color: var(--olympic-gold);
             text-decoration-thickness: 3px;
         }
-        
+
+        .admin-link {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .admin-link:hover { color: var(--irish-green); }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal h2 {
+            color: var(--deep-green);
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+
+        .modal input[type="password"],
+        .modal input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: var(--irish-green);
+        }
+
+        .modal button {
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            width: auto;
+            margin: 5px;
+        }
+
+        .modal .btn-secondary { background: #999; }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: auto;
+            box-shadow: none;
+        }
+        .close-btn:hover { color: #333; background: none; transform: none; }
+
+        .bucket-section {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .bucket-section h4 {
+            color: var(--deep-green);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .bucket-words {
+            background: var(--off-white);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 10px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .word-tag {
+            display: inline-block;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin: 2px;
+            font-size: 0.75rem;
+        }
+        .word-tag .delete-word {
+            color: #EE334E;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        .add-word-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-word-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .add-word-row button {
+            width: auto;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+        }
+
+        .error-msg { color: #EE334E; font-size: 0.85rem; margin-bottom: 10px; }
+        .success-msg { color: var(--irish-green); font-size: 0.85rem; margin-bottom: 10px; }
+        .loading { color: #888; font-style: italic; }
+
         @media (max-width: 480px) {
             .container { padding: 25px; }
             h1 { font-size: 1.5rem; }
@@ -201,7 +320,6 @@
                      style="height: 80px; border-radius: 50%; border: 2px solid #ddd;">
                 <div class="mascot-caption">1932: Smoky (Unofficial)</div>
             </div>
-
             <div class="mascot-item">
                 <img src="https://raw.githubusercontent.com/sweiwang9/CASBS/main/Ann/sam.png" 
                      alt="Sam the Eagle" 
@@ -210,44 +328,237 @@
             </div>
         </div>
         
-        <div id="compliment-box">
-             Go for Gold!
-        </div>
-
-        <button onclick="generateCompliment()">PEP!</button>
+        <div id="compliment-box">Go for Gold!</div>
+        <button id="pep-btn">PEP!</button>
+        <div class="admin-link" id="admin-link">🔒 Admin</div>
     </div>
 
-    <script>
-        // Initialize empty buckets
-        let bucketA = [];
-        let bucketB = [];
-        let bucketC = [];
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <button class="close-btn" id="close-login">&times;</button>
+            <h2>🔐 Admin Login</h2>
+            <div id="loginError" class="error-msg" style="display:none;"></div>
+            <input type="password" id="passwordInput" placeholder="Enter password">
+            <button id="login-btn">Login</button>
+            <button class="btn-secondary" id="cancel-btn">Cancel</button>
+        </div>
+    </div>
 
-        // 1. LOAD WORDS FROM THE JSON FILE
-        fetch('words.json?v=' + new Date().getTime()) // unique timestamp prevents caching old versions
-            .then(response => response.json())
-            .then(data => {
-                bucketA = data.bucketA;
-                bucketB = data.bucketB;
-                bucketC = data.bucketC;
-                console.log("Words loaded successfully!");
-            })
-            .catch(error => console.error('Error loading words:', error));
+    <!-- Admin Panel Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal">
+            <button class="close-btn" id="close-admin">&times;</button>
+            <h2>⚙️ Manage Words</h2>
+            <div id="successMsg" class="success-msg" style="display:none;"></div>
 
+            <div class="bucket-section">
+                <h4>Bucket A: The "Vibe" (Abstract)</h4>
+                <div class="bucket-words" id="bucketAWords"><span class="loading">Loading...</span></div>
+                <div class="add-word-row">
+                    <input type="text" id="newWordA" placeholder="e.g., magnificent">
+                    <button id="addA-btn">Add</button>
+                </div>
+            </div>
+
+            <div class="bucket-section">
+                <h4>Bucket B: The "Descriptor" (Physical)</h4>
+                <div class="bucket-words" id="bucketBWords"><span class="loading">Loading...</span></div>
+                <div class="add-word-row">
+                    <input type="text" id="newWordB" placeholder="e.g., golden-haired">
+                    <button id="addB-btn">Add</button>
+                </div>
+            </div>
+
+            <div class="bucket-section">
+                <h4>Bucket C: The "Noun" (Animal/Object)</h4>
+                <div class="bucket-words" id="bucketCWords"><span class="loading">Loading...</span></div>
+                <div class="add-word-row">
+                    <input type="text" id="newWordC" placeholder="e.g., rainbow dolphin">
+                    <button id="addC-btn">Add</button>
+                </div>
+            </div>
+
+            <button class="btn-secondary" id="done-btn">Done</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your existing Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCY5Rj9t9qXXclRCBKFr19XVucAnGUFlqU",
+            authDomain: "casbs-d6beb.firebaseapp.com",
+            projectId: "casbs-d6beb",
+            storageBucket: "casbs-d6beb.firebasestorage.app",
+            messagingSenderId: "1041142814490",
+            appId: "1:1041142814490:web:9cebf81c1d71f4dca33ea3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            // Attach all event listeners
+            document.getElementById('pep-btn').addEventListener('click', generateCompliment);
+            document.getElementById('admin-link').addEventListener('click', openLoginModal);
+            document.getElementById('login-btn').addEventListener('click', checkPassword);
+            document.getElementById('cancel-btn').addEventListener('click', closeModals);
+            document.getElementById('close-login').addEventListener('click', closeModals);
+            document.getElementById('close-admin').addEventListener('click', closeModals);
+            document.getElementById('done-btn').addEventListener('click', closeModals);
+            document.getElementById('addA-btn').addEventListener('click', () => addWord('A'));
+            document.getElementById('addB-btn').addEventListener('click', () => addWord('B'));
+            document.getElementById('addC-btn').addEventListener('click', () => addWord('C'));
+            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPassword();
+            });
+
+            // Close modal on outside click
+            document.querySelectorAll(".modal-overlay").forEach(overlay => {
+                overlay.addEventListener("click", (e) => {
+                    if (e.target === overlay) closeModals();
+                });
+            });
+
+            // Load words
+            loadWords();
+        }
+
+        // Default words (used if Firebase has no data yet)
+        const defaultWords = {
+            bucketA: ["poetic", "opalescent", "brilliant", "tricky", "glowing", "radiant", "noble", "cunning", "resilient", "ethereal", "majestic"],
+            bucketB: ["tropical", "rule-breaking", "chestnut-haired", "newborn", "sun-dappled", "sophisticated", "rainbow-infused", "pliable", "sassy"],
+            bucketC: ["land mermaid", "musk ox", "sunflower", "tree shark", "sunfish", "moth", "space unicorn", "golden retriever", "sun goddess", "minx"]
+        };
+
+        let words = { bucketA: [], bucketB: [], bucketC: [] };
+        let isLoggedIn = false;
+
+        // Load words from Firebase
+        async function loadWords() {
+            try {
+                const docSnap = await getDoc(doc(db, "complimentWords", "buckets"));
+                if (docSnap.exists()) {
+                    words = docSnap.data();
+                } else {
+                    // First time: save default words to Firebase
+                    words = defaultWords;
+                    await setDoc(doc(db, "complimentWords", "buckets"), words);
+                }
+            } catch (err) {
+                console.log("Using default words:", err);
+                words = defaultWords;
+            }
+        }
+
+        // Save words to Firebase
+        async function saveWords() {
+            try {
+                await setDoc(doc(db, "complimentWords", "buckets"), words);
+            } catch (err) {
+                alert("Error saving: " + err.message);
+            }
+        }
+
+        // Generate compliment
         function generateCompliment() {
-            // Safety check: ensure words are loaded
-            if (bucketA.length === 0) {
-                document.getElementById("compliment-box").innerHTML = "Loading words... try again in a second!";
+            if (words.bucketA.length === 0) {
+                document.getElementById("compliment-box").innerHTML = "Loading words...";
                 return;
             }
-
-            const adj1 = bucketA[Math.floor(Math.random() * bucketA.length)];
-            const adj2 = bucketB[Math.floor(Math.random() * bucketB.length)];
-            const noun = bucketC[Math.floor(Math.random() * bucketC.length)];
-            
+            const adj1 = words.bucketA[Math.floor(Math.random() * words.bucketA.length)];
+            const adj2 = words.bucketB[Math.floor(Math.random() * words.bucketB.length)];
+            const noun = words.bucketC[Math.floor(Math.random() * words.bucketC.length)];
             const phrase = `Ann, you <span class="highlight">${adj1}</span>, <span class="highlight">${adj2}</span> <span class="highlight">${noun}</span>.`;
-
             document.getElementById("compliment-box").innerHTML = phrase;
+        }
+
+        // Modal functions
+        function openLoginModal() {
+            document.getElementById("loginModal").classList.add("active");
+            document.getElementById("passwordInput").value = "";
+            document.getElementById("loginError").style.display = "none";
+            document.getElementById("passwordInput").focus();
+        }
+
+        function closeModals() {
+            document.getElementById("loginModal").classList.remove("active");
+            document.getElementById("adminModal").classList.remove("active");
+        }
+
+        async function checkPassword() {
+            const pass = document.getElementById("passwordInput").value;
+            try {
+                await signInWithEmailAndPassword(auth, "casbs2025@gmail.com", pass);
+                document.getElementById("loginModal").classList.remove("active");
+                openAdminPanel();
+            } catch (err) {
+                document.getElementById("loginError").textContent = "Incorrect password!";
+                document.getElementById("loginError").style.display = "block";
+            }
+        }
+
+        function openAdminPanel() {
+            updateBucketDisplays();
+            document.getElementById("adminModal").classList.add("active");
+            document.getElementById("successMsg").style.display = "none";
+        }
+
+        function updateBucketDisplays() {
+            ['A', 'B', 'C'].forEach(bucket => {
+                const container = document.getElementById(`bucket${bucket}Words`);
+                const arr = words[`bucket${bucket}`];
+                container.innerHTML = arr.map(w => 
+                    `<span class="word-tag">${w}<span class="delete-word" data-bucket="${bucket}" data-word="${w}">&times;</span></span>`
+                ).join('');
+                
+                // Attach delete listeners
+                container.querySelectorAll('.delete-word').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const b = e.target.dataset.bucket;
+                        const w = e.target.dataset.word;
+                        await deleteWord(b, w);
+                    });
+                });
+            });
+        }
+
+        async function addWord(bucket) {
+            const input = document.getElementById("newWord" + bucket);
+            const word = input.value.trim().toLowerCase();
+            if (!word) return;
+
+            const key = `bucket${bucket}`;
+            if (!words[key].includes(word)) {
+                words[key].push(word);
+                await saveWords();
+                input.value = "";
+                updateBucketDisplays();
+                showSuccess(`"${word}" added!`);
+            }
+        }
+
+        async function deleteWord(bucket, word) {
+            const key = `bucket${bucket}`;
+            words[key] = words[key].filter(w => w !== word);
+            await saveWords();
+            updateBucketDisplays();
+            showSuccess(`"${word}" removed!`);
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById("successMsg");
+            el.textContent = msg;
+            el.style.display = "block";
+            setTimeout(() => el.style.display = "none", 2000);
         }
     </script>
 </body>
