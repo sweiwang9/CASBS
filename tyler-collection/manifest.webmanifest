@@ -1,0 +1,17 @@
+{
+  "name": "The Tyler Collection — Walk the Stacks",
+  "short_name": "Tyler Collection",
+  "description": "Browse the CASBS Ralph W. Tyler Collection in a 3D walk-in study or as a filterable card catalog.",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1209",
+  "theme_color": "#8C1515",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
