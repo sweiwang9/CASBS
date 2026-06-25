@@ -1177,7 +1177,7 @@ function buildWorld(){
      (or elsewhere / Esc) slides it back. */
   const UNIT_NORMAL=[new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0),new THREE.Vector3(-1,0,0)];
   const coverLoader=new THREE.TextureLoader();
-  const OUT=0.64, LIFT=0.15;
+  const OUT=0.64;
   let selectedMesh=null, selectedBook=null, autoFace=false, camTween=null;
   const tweens=[]; const _wp=new THREE.Vector3();
   function easeOutCubic(t){return 1-Math.pow(1-t,3);}
@@ -1232,18 +1232,21 @@ function buildWorld(){
       }
     }
     const home=mesh.userData.home;
-    const toPos=home.pos.clone(); toPos.z+=OUT; toPos.y+=LIFT;
+    // Pop every book to a common eye-level viewing height so top- and
+    // bottom-shelf books are equally easy to see (instead of staying at their
+    // shelf height). The book glides out (+OUT toward the room) and up/down to
+    // PRESENT_Y; the camera sits at the same height, so it reads dead-center.
+    const PRESENT_Y=eye+0.05;
+    const toPos=home.pos.clone(); toPos.z+=OUT; toPos.y=PRESENT_Y;
     mesh.getWorldPosition(_wp);
     const n=UNIT_NORMAL[mesh.userData.unit||0];
     const cam=new THREE.Vector3(_wp.x+n.x*1.12, eye, _wp.z+n.z*1.12);
     cam.x=Math.max(-W/2+0.7,Math.min(W/2-0.7,cam.x));
     cam.z=Math.max(-D/2+1.2,Math.min(D/2-0.7,cam.z));
-    // Criterion-style: tilt the cover so it faces the camera flat-on instead of
-    // staying vertical. The book ends up at (_wp + n*OUT, +LIFT); the camera sits
-    // at `cam` (eye height). Match the cover's pitch to the camera's actual
-    // viewing angle — clamped to ±0.6 to mirror faceMesh's pitch clamp — so the
-    // cover stays square to the screen on high and low shelves alike.
-    const bWX=_wp.x+n.x*OUT, bWY=_wp.y+LIFT, bWZ=_wp.z+n.z*OUT;
+    // Criterion-style: tilt the cover so it faces the camera flat-on. With the
+    // book at PRESENT_Y and the camera at eye height this is ~0 (cover upright),
+    // but keep it general so the cover stays square if PRESENT_Y is retuned.
+    const bWX=_wp.x+n.x*OUT, bWY=PRESENT_Y, bWZ=_wp.z+n.z*OUT;
     const horiz=Math.hypot(bWX-cam.x, bWZ-cam.z)||0.001;
     const tilt=Math.max(-0.6,Math.min(0.6,Math.atan2(bWY-cam.y,horiz)));
     tweenMesh(mesh,toPos,new THREE.Euler(tilt,-Math.PI/2,0),0.55);
