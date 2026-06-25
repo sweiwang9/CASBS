@@ -1233,13 +1233,21 @@ function buildWorld(){
     }
     const home=mesh.userData.home;
     const toPos=home.pos.clone(); toPos.z+=OUT; toPos.y+=LIFT;
-    tweenMesh(mesh,toPos,new THREE.Euler(-0.10,-Math.PI/2,0),0.55);
-    mesh.renderOrder=3;
     mesh.getWorldPosition(_wp);
     const n=UNIT_NORMAL[mesh.userData.unit||0];
     const cam=new THREE.Vector3(_wp.x+n.x*1.12, eye, _wp.z+n.z*1.12);
     cam.x=Math.max(-W/2+0.7,Math.min(W/2-0.7,cam.x));
     cam.z=Math.max(-D/2+1.2,Math.min(D/2-0.7,cam.z));
+    // Criterion-style: tilt the cover so it faces the camera flat-on instead of
+    // staying vertical. The book ends up at (_wp + n*OUT, +LIFT); the camera sits
+    // at `cam` (eye height). Match the cover's pitch to the camera's actual
+    // viewing angle — clamped to ±0.6 to mirror faceMesh's pitch clamp — so the
+    // cover stays square to the screen on high and low shelves alike.
+    const bWX=_wp.x+n.x*OUT, bWY=_wp.y+LIFT, bWZ=_wp.z+n.z*OUT;
+    const horiz=Math.hypot(bWX-cam.x, bWZ-cam.z)||0.001;
+    const tilt=Math.max(-0.6,Math.min(0.6,Math.atan2(bWY-cam.y,horiz)));
+    tweenMesh(mesh,toPos,new THREE.Euler(tilt,-Math.PI/2,0),0.55);
+    mesh.renderOrder=3;
     camTween={from:yawO.position.clone(),to:cam,t:0,dur:0.6};
     autoFace=true; clearTarget(); showPanel(selectedBook);
     return true;
