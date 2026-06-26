@@ -754,7 +754,25 @@ function setCatalog(open){
   toggleBtn.classList.toggle('active',open);
   toggleBtn.querySelector('span').textContent = open? 'Study':'Catalog';
   if(open){exitLock();renderGrid();} else {resumeStudy();}
+  // keep the URL in sync so the catalog is linkable and the back button works
+  const onCatalog = location.hash === '#catalog';
+  if(open && !onCatalog){
+    history.pushState(null,'','#catalog');
+  } else if(!open && onCatalog){
+    history.pushState(null,'', location.pathname + location.search);
+  }
 }
+/* react to the back/forward buttons and direct #catalog links */
+function reflectHash(){
+  const wantCatalog = location.hash === '#catalog';
+  if(wantCatalog === catalogOpen) return;
+  if(wantCatalog && intro.style.display !== 'none'){
+    intro.classList.add('gone'); intro.style.display='none';
+  }
+  setCatalog(wantCatalog);
+}
+addEventListener('popstate', reflectHash);
+addEventListener('hashchange', reflectHash);
 toggleBtn.addEventListener('click',()=>setCatalog(!catalogOpen));
 document.getElementById('backToRoom').addEventListener('click',()=>setCatalog(false));
 document.getElementById('randomBtn').addEventListener('click',()=>{
@@ -1468,7 +1486,7 @@ window.addEventListener('load',async()=>{
   rebuildChips();
   renderGrid();
 
-  world=buildWorld();
+  try{ world=buildWorld(); }catch(e){ world=null; }
   if(world){
     world.layout(current());
   } else {
@@ -1481,6 +1499,12 @@ window.addEventListener('load',async()=>{
   // Hide loading
   loadingEl.classList.add('done');
   setTimeout(()=>loadingEl.remove(),700);
+
+  // deep link: …/#catalog opens straight into the card catalog
+  if(location.hash === '#catalog'){
+    intro.classList.add('gone'); intro.style.display='none';
+    setCatalog(true);
+  }
 });
 </script>
 <script>
