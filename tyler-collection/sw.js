@@ -1,7 +1,7 @@
 /* Service worker for The Tyler Collection PWA.
    Bump SHELL_VERSION whenever index.html / books.json / three.min.js change
    so returning visitors get the new version instead of a stale cache. */
-const SHELL_VERSION = 'tyler-shell-v3';
+const SHELL_VERSION = 'tyler-shell-v4';
 const COVERS_CACHE  = 'tyler-covers-v1';   // covers are immutable by filename
 
 const SHELL = [
